@@ -33,12 +33,19 @@ Preserve transparency and use these exact assets unless the user names replaceme
 - Flutter with GetX state management; persistence uses `shared_preferences`.
 - Design for a portrait phone first, using approximately `390x844` as the primary QA size. Prevent overflow, keep tap targets usable, allow scrolling where necessary, and keep interactive scenery behind all text panels.
 - After the player submits a name, remove the name page from navigation history. Do not allow returning to it from the game.
+- The castle home settings button uses its own `Positioned(top, right)` layer inside `SafeArea`; it must stay pinned to the physical top-right instead of participating in the status `Row`. Clearing memory always requires an explicit confirmation, removes only this game's saved player/progress/inventory data, resets every runtime mission state, and returns to the name-entry page.
 - Automatically save the player name, dialogue state, mission progress, stars, recruited characters, grass-search state, and inventory. A later launch resumes directly in the game.
+- Before revealing the first route, preload and decode every local character/background image and warm up the commonly used Traditional Chinese glyphs. Show only the dedicated loading surface until preloading completes, so partially loaded game scenes never flash on screen.
 - Use the custom royal-purple, gold, fairy-tale controls in `lib/widgets/game_widgets.dart`. Do not reintroduce default Material 3 buttons.
 - Keep cross-platform emoji fallbacks (`Apple Color Emoji`, `Noto Color Emoji`, `Segoe UI Emoji`, and `Twemoji Mozilla`) in the app theme so decorative symbols do not render as missing-glyph boxes. Prefer Material icons or local image assets for critical controls and gameplay feedback.
+- Never place Emoji, dingbat, or decorative Unicode symbols directly in visible `Text` widgets. Web fallback fonts can briefly show tofu boxes even after preloading; use bundled Material `Icon`s, `GameItemArt`, local images, or custom painting instead.
 - Do not render the dog bone, Lotso strawberry, or Goofy green sock as emoji. Use the code-drawn `GameItemArt` for their animations and inventory slots so late emoji-font loading never produces a temporary missing-glyph box.
+- Flying bones, socks, strawberries, and bows must be later children in the scene `Stack` (or use the outermost overlay), so reward items always render in front of every character.
 - The main castle initially shows only the princess and Mickey. Pluto appears there only after completing the first mission.
 - Missions unlock sequentially. Show completed missions and the current mission; keep later mission details hidden behind a generic locked row.
+- The complete adventure contains exactly 10 missions. Missions 1–3 are Pluto's bone, the Toy Story alien rescue, and Minnie's bow. Missions 4–10 are Olaf's carrot, Stitch's record party, Simba's courage trial, Aladdin's carpet rescue, Belle's enchanted rose, Pooh's honey maze, and Rapunzel's birthday lantern finale. The final story uses Rapunzel, Pascal, and Eugene to recover sun-emblem fragments and light the kingdom's birthday lanterns.
+- Missions 4–10 currently use the shared playable prototype in `lib/views/prototype_mission_page.dart`: named character placeholders, player-controlled dialogue, a mission-specific moving-target activity, visible progress, a player-triggered reward animation, inventory reward, and saved dialogue/activity progress. Missing character art must not block gameplay; replace a named placeholder with a transparent local asset later without changing mission progression. Never auto-complete a prototype mission before the required target count and the player's explicit reward action.
+- Before entering a mission scene, the castle, Mickey hint, main action button, mission scroll, and mission list must call every unfinished mission a generic `神秘任務`; never reveal its title, location, characters, objective, or reward. Reveal the story only inside the mission scene. Completed missions may show their real title and description.
 - The mission scroll opens by moving its top and bottom rods apart while revealing parchment from the center. Closing reverses the same rolling motion before navigation.
 
 ## First mission: Pluto's bone
@@ -54,9 +61,11 @@ Preserve this order:
 7. Tapping the inventory bone removes it from the slot and animates it to Pluto first.
 8. Only after Pluto receives the bone, switch to `pluto_has_bone.png`, flip it horizontally so Pluto faces the house, and animate Pluto running into `pluto_house.png`.
 9. After Pluto enters the dog house, Pluto must walk back out visibly carrying `🧦 高飛狗的綠襪子`, announce that it is a gift, and animate the sock into inventory slot one.
+   The full sock reward overlay must be a later child than the inventory panel in the Pluto scene `Stack`, so the flying sock is visibly painted above the inventory bar and its slots.
 10. Complete and save the mission only after the sock reaches inventory. Then return to the castle and add Pluto to the main cast. When migrating an older completed save, insert the sock at slot one and shift existing rewards right instead of overwriting them.
 
 Do not collapse these into one immediate state change; the visible animation order is part of the game logic.
+Major story animations pause at their important reveal/gift moments and expose a custom `MagicButton` next-step action. Never let a plot reveal finish automatically before the player can read it.
 
 ## Second mission: rescue the three-eyed alien
 
@@ -66,7 +75,7 @@ Preserve this order:
 1. Enter the generated Andy's room background and show Woody and Buzz discussing the missing three-eyed alien.
 2. Slinky Dog and Lotso appear and explain that Zurg probably captured the alien.
 3. Zurg appears and challenges the player.
-4. Run the mobile-safe tap battle. Start the dodge timer only while battle mode is active. Zurg automatically moves to a clearly different position about every `520ms`, also jumps immediately after a successful hit, stays inside the unobstructed battle area, and requires five successful taps. Every hit must visibly update the energy label/bar and play an unmistakable red color flash, strong scale/shake/rotation, lightning, and hit-text response; the flash and hit text disappear `700ms` after the most recent hit.
+4. Run the mobile-safe tap battle. Start the dodge timer only while battle mode is active. Zurg chooses randomly among every position except its current one, moves at a randomized `360–720ms` interval, also jumps to a random different position immediately after a successful hit, stays inside the unobstructed battle area, and requires five successful taps. Every hit must visibly update the energy label/bar and play an unmistakable red color flash, strong scale/shake/rotation, lightning, and hit-text response; the flash and hit text disappear `700ms` after the most recent hit.
    Read reactive battle values (`zurgHealth` and `zurgDodgeIndex`) inside an active `Obx` tracking scope before passing them into `LayoutBuilder`; values read only from the deferred layout callback will not rebuild the battle UI.
 5. After Zurg is defeated, first animate Zurg from its last dodge position to the exact screen center. Zurg says `啊啊啊啊啊啊！` and slowly fades away; do not reveal the alien before Zurg has faded.
 6. The three-eyed alien then slowly fades/scales in and says `你救了我們，我們永遠感謝你！`. Only after that sequence, show the rescued alien with Woody, Buzz, Slinky Dog, and Lotso. Do not include Zurg in the thank-you cast. Then each remaining character thanks the player in sequence.
@@ -80,8 +89,8 @@ Preserve this order:
 
 1. Both mission entry points navigate to `/minnie-garden`. Show `minnine_pink.png`; Minnie explains that her red bow is missing and she is distressed.
 2. Show six glowing search spots. Every spot is wrong, can be searched once, and search progress is saved.
-3. Only after all six spots have been searched, reveal Pluto with a clear tap prompt.
-4. Tapping Pluto starts a visible sniffing route around the scene. Pluto repeatedly sniffs, finds the code-drawn red bow, and the bow animates into inventory before `minnieRedBowFound` is committed.
+3. Only after all six spots have been searched, slowly fade/slide Pluto into the scene. First ask the player to press `請布魯托幫忙看看`; Pluto then replies `汪！交給我，我來聞聞看！`, and a separate next-step button starts the search. Persist this asked/replied state.
+4. Pluto follows a visible sniffing route and pauses when the code-drawn red bow is found. After the player continues, Pluto carries the bow toward the player, pauses to hand it over, then the bow animates into inventory and Pluto visibly leaves. Commit `minnieRedBowFound` only after the handoff and exit animation finishes; once the animation completes, Pluto must remain absent from the garden scene.
 5. Tapping the red bow in inventory removes it and animates it to Minnie. At arrival, switch Minnie to `minnine_red.png`.
 6. Minnie thanks the player and sends the code-drawn pink bow into inventory. Complete and save mission three only after the pink bow reaches inventory, then return to the castle.
 

@@ -23,6 +23,7 @@ class PlutoHomePage extends GetView<GameController> {
             builder: (context, constraints) => Obx(() {
               final compact = constraints.maxWidth < 650;
               return Stack(
+                key: const Key('pluto_scene_stack'),
                 children: [
                   Positioned(
                     left: compact ? 12 : constraints.maxWidth * .07,
@@ -75,20 +76,20 @@ class PlutoHomePage extends GetView<GameController> {
                         ),
                       ),
                     ),
-                  if (controller.boneGiving.value)
-                    Positioned.fill(
-                      child: IgnorePointer(
-                        child: _PlutoRunHomeAnimation(
-                          compact: compact,
-                          onCompleted: controller.completePlutoMission,
-                        ),
-                      ),
-                    ),
                   _header(),
                   Align(
+                    key: const Key('pluto_inventory_layer'),
                     alignment: Alignment.bottomCenter,
                     child: _bottomPanel(),
                   ),
+                  if (controller.boneGiving.value)
+                    Positioned.fill(
+                      key: const Key('pluto_reward_overlay'),
+                      child: _PlutoRunHomeAnimation(
+                        compact: compact,
+                        onCompleted: controller.completePlutoMission,
+                      ),
+                    ),
                 ],
               );
             }),
@@ -119,13 +120,20 @@ class PlutoHomePage extends GetView<GameController> {
             borderRadius: BorderRadius.circular(24),
             boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 12)],
           ),
-          child: const Text(
-            '🏡 布魯托的家',
-            style: TextStyle(
-              color: Color(0xFF51300D),
-              fontWeight: FontWeight.w900,
-              fontSize: 17,
-            ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.home_rounded, color: Color(0xFF7B4B19)),
+              SizedBox(width: 7),
+              Text(
+                '布魯托的家',
+                style: TextStyle(
+                  color: Color(0xFF51300D),
+                  fontWeight: FontWeight.w900,
+                  fontSize: 17,
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -249,7 +257,11 @@ class _SearchGrassPatch extends StatelessWidget {
             AnimatedOpacity(
               duration: const Duration(milliseconds: 260),
               opacity: searched ? .42 : 1,
-              child: const Text('🌿', style: TextStyle(fontSize: 66)),
+              child: const Icon(
+                Icons.grass_rounded,
+                size: 66,
+                color: Color(0xFF398A3D),
+              ),
             ),
             if (searched)
               const CircleAvatar(
@@ -304,14 +316,18 @@ class _BoneHotspotState extends State<_BoneHotspot>
         child: Stack(
           alignment: Alignment.bottomCenter,
           children: [
-            const Text('🌿', style: TextStyle(fontSize: 98)),
+            const Icon(Icons.grass_rounded, size: 98, color: Color(0xFF398A3D)),
             if (!widget.controller.plutoBoneFound.value)
               Positioned(
                 top: 5 + _pulse.value * 5,
                 right: 16,
                 child: Opacity(
                   opacity: .45 + _pulse.value * .55,
-                  child: const Text('✨', style: TextStyle(fontSize: 25)),
+                  child: const Icon(
+                    Icons.auto_awesome_rounded,
+                    size: 25,
+                    color: Color(0xFFFFE269),
+                  ),
                 ),
               )
             else
@@ -407,7 +423,11 @@ class _BoneToInventoryAnimationState extends State<_BoneToInventoryAnimation>
           if (t > .78)
             const Align(
               alignment: Alignment(-.82, .78),
-              child: Text('✨', style: TextStyle(fontSize: 30)),
+              child: Icon(
+                Icons.auto_awesome_rounded,
+                size: 30,
+                color: Color(0xFFFFE269),
+              ),
             ),
         ],
       );
@@ -431,19 +451,48 @@ class _PlutoRunHomeAnimation extends StatefulWidget {
 class _PlutoRunHomeAnimationState extends State<_PlutoRunHomeAnimation>
     with SingleTickerProviderStateMixin {
   late final AnimationController _animation;
+  int _pauseStep = 0;
+  bool _moving = true;
 
   @override
   void initState() {
     super.initState();
-    _animation =
-        AnimationController(
-            vsync: this,
-            duration: const Duration(milliseconds: 7000),
-          )
-          ..addStatusListener((status) {
-            if (status == AnimationStatus.completed) widget.onCompleted();
-          })
-          ..forward();
+    _animation = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 7000),
+    );
+    _animateTo(.55, const Duration(milliseconds: 3850), nextStep: 1);
+  }
+
+  Future<void> _animateTo(
+    double target,
+    Duration duration, {
+    int? nextStep,
+  }) async {
+    if (mounted) setState(() => _moving = true);
+    await _animation.animateTo(
+      target,
+      duration: duration,
+      curve: Curves.linear,
+    );
+    if (!mounted) return;
+    if (target >= 1) {
+      widget.onCompleted();
+      return;
+    }
+    setState(() {
+      _moving = false;
+      _pauseStep = nextStep ?? _pauseStep;
+    });
+  }
+
+  void _continueStory() {
+    if (_moving) return;
+    if (_pauseStep == 1) {
+      _animateTo(.82, const Duration(milliseconds: 1890), nextStep: 2);
+    } else {
+      _animateTo(1, const Duration(milliseconds: 1120));
+    }
   }
 
   @override
@@ -629,6 +678,18 @@ class _PlutoRunHomeAnimationState extends State<_PlutoRunHomeAnimation>
                 ),
               ),
             ),
+          if (!_moving && _pauseStep > 0)
+            SafeArea(
+              child: Align(
+                alignment: const Alignment(0, .38),
+                child: MagicButton(
+                  key: ValueKey('pluto_story_next_$_pauseStep'),
+                  label: _pauseStep == 1 ? '下一步：看看布魯托帶回什麼' : '收下綠襪子',
+                  icon: Icons.auto_awesome_rounded,
+                  onPressed: _continueStory,
+                ),
+              ),
+            ),
         ],
       );
     },
@@ -700,10 +761,7 @@ class _YardBackground extends StatelessWidget {
       ])
         Align(
           alignment: cloud.$1,
-          child: Text(
-            '☁️',
-            style: TextStyle(fontSize: cloud.$2, color: Colors.white),
-          ),
+          child: Icon(Icons.cloud_rounded, size: cloud.$2, color: Colors.white),
         ),
     ],
   );

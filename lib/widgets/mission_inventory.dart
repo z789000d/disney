@@ -124,7 +124,11 @@ class _MissionScrollOverlayState extends State<MissionScrollOverlay>
       children: [
         Row(
           children: [
-            const Text('📜', style: TextStyle(fontSize: 34)),
+            const Icon(
+              Icons.auto_stories_rounded,
+              size: 34,
+              color: Color(0xFF633713),
+            ),
             const SizedBox(width: 10),
             const Expanded(
               child: Column(
@@ -184,7 +188,6 @@ class _MissionScrollOverlayState extends State<MissionScrollOverlay>
                       GameController.missions.length - visibleCount;
                   return _LockedMissionsRow(count: remaining);
                 }
-                final mission = GameController.missions[index];
                 final completed = index < completedCount;
                 final active =
                     index == completedCount &&
@@ -239,14 +242,16 @@ class _MissionScrollOverlayState extends State<MissionScrollOverlay>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                mission.title,
+                                widget.controller.lobbyMissionTitle(index),
                                 style: const TextStyle(
                                   color: Color(0xFF5D3519),
                                   fontWeight: FontWeight.w900,
                                 ),
                               ),
                               Text(
-                                mission.description,
+                                widget.controller.lobbyMissionDescription(
+                                  index,
+                                ),
                                 style: const TextStyle(
                                   color: Color(0xFF805525),
                                   fontSize: 12,
@@ -335,7 +340,7 @@ class MissionListSheet extends StatelessWidget {
               children: [
                 const CircleAvatar(
                   backgroundColor: Color(0xFF282631),
-                  child: Text('🐭'),
+                  child: Icon(Icons.face_rounded, color: Colors.white),
                 ),
                 const SizedBox(width: 12),
                 const Expanded(
@@ -351,7 +356,7 @@ class MissionListSheet extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '依序完成 20 項任務，尋找限定道具。',
+                        '依序完成 10 項任務，尋找限定道具。',
                         style: TextStyle(color: Color(0xFF716780)),
                       ),
                     ],
@@ -387,7 +392,6 @@ class MissionListSheet extends StatelessWidget {
                 itemCount: GameController.missions.length,
                 separatorBuilder: (_, _) => const SizedBox(height: 8),
                 itemBuilder: (context, index) {
-                  final mission = GameController.missions[index];
                   final completed = index < completedCount;
                   final active =
                       index == completedCount &&
@@ -427,26 +431,27 @@ class MissionListSheet extends StatelessWidget {
                               ),
                       ),
                       title: Text(
-                        mission.title,
+                        controller.lobbyMissionTitle(index),
                         style: TextStyle(
                           fontWeight: FontWeight.w800,
                           color: active ? const Color(0xFF4D2A83) : null,
                         ),
                       ),
-                      subtitle: Text(mission.description),
-                      trailing: Text(
-                        completed
-                            ? '完成'
-                            : active
-                            ? '進行中'
-                            : '🔒',
-                        style: TextStyle(
-                          color: completed
-                              ? const Color(0xFF308E52)
-                              : const Color(0xFF7350A5),
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+                      subtitle: Text(controller.lobbyMissionDescription(index)),
+                      trailing: completed || active
+                          ? Text(
+                              completed ? '完成' : '進行中',
+                              style: TextStyle(
+                                color: completed
+                                    ? const Color(0xFF308E52)
+                                    : const Color(0xFF7350A5),
+                                fontWeight: FontWeight.w700,
+                              ),
+                            )
+                          : const Icon(
+                              Icons.lock_rounded,
+                              color: Color(0xFF7350A5),
+                            ),
                     ),
                   );
                 },
@@ -576,11 +581,10 @@ class InventoryBar extends StatelessWidget {
                                         type: type,
                                         size: compact ? 31 : 37,
                                       ),
-                                      null => Text(
-                                        item.icon,
-                                        style: TextStyle(
-                                          fontSize: compact ? 22 : 27,
-                                        ),
+                                      null => Icon(
+                                        Icons.card_giftcard_rounded,
+                                        color: const Color(0xFF6A3C91),
+                                        size: compact ? 25 : 30,
                                       ),
                                     },
                                   ),

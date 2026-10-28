@@ -43,11 +43,9 @@ class MinnieGardenPage extends GetView<GameController> {
             ),
             if (controller.minnieRewardGiving.value)
               Positioned.fill(
-                child: IgnorePointer(
-                  child: _MinnieBowExchangeAnimation(
-                    onBowReturned: controller.markMinnieBowReturned,
-                    onCompleted: controller.completeMinnieMission,
-                  ),
+                child: _MinnieBowExchangeAnimation(
+                  onBowReturned: controller.markMinnieBowReturned,
+                  onCompleted: controller.completeMinnieMission,
                 ),
               ),
           ],
@@ -128,60 +126,20 @@ class MinnieGardenPage extends GetView<GameController> {
                 !controller.minniePlutoSearching.value &&
                 !controller.minnieRedBowFound.value)
               Positioned(
-                left: compact ? 16 : constraints.maxWidth * .14,
-                bottom: 4,
-                child: GestureDetector(
-                  key: const Key('minnie_pluto_hint'),
-                  behavior: HitTestBehavior.opaque,
-                  onTap: controller.startMinniePlutoSearch,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 7,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xF2FFFFFF),
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(
-                            color: const Color(0xFFFFC44F),
-                            width: 2,
-                          ),
-                        ),
-                        child: const Text(
-                          '點我，我來聞聞看！',
-                          style: TextStyle(fontWeight: FontWeight.w900),
-                        ),
-                      ),
-                      Image.asset(
-                        'assets/images/pluto_cutout.png',
-                        width: compact ? 145 : 205,
-                        fit: BoxFit.contain,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            if (controller.minnieRedBowFound.value &&
-                !controller.minnieRewardGiving.value)
-              Positioned(
-                left: compact ? 18 : constraints.maxWidth * .16,
-                bottom: 10,
-                child: Image.asset(
-                  'assets/images/pluto_cutout.png',
-                  width: compact ? 125 : 180,
-                  fit: BoxFit.contain,
+                left: compact ? 8 : constraints.maxWidth * .10,
+                bottom: 0,
+                child: _PlutoHelpArrival(
+                  compact: compact,
+                  asked: controller.minniePlutoAsked.value,
+                  onAsk: controller.askMinniePlutoForHelp,
+                  onStartSearch: controller.startMinniePlutoSearch,
                 ),
               ),
             if (controller.minniePlutoSearching.value)
               Positioned.fill(
-                child: IgnorePointer(
-                  child: _PlutoBowSearchAnimation(
-                    compact: compact,
-                    onCompleted: controller.completeMinniePlutoSearch,
-                  ),
+                child: _PlutoBowSearchAnimation(
+                  compact: compact,
+                  onCompleted: controller.completeMinniePlutoSearch,
                 ),
               ),
           ],
@@ -221,7 +179,9 @@ class MinnieGardenPage extends GetView<GameController> {
         : controller.minniePlutoSearching.value
         ? '布魯托正在花園裡一直聞、一直聞…'
         : controller.allMinnieSpotsSearched
-        ? '六個地方都沒有！布魯托來了，點擊它幫忙尋找。'
+        ? controller.minniePlutoAsked.value
+              ? '布魯托：交給我，我來聞聞看！按下一步開始尋找。'
+              : '六個地方都沒有！請布魯托幫忙看看。'
         : controller.searchedMinnieSpots.isEmpty
         ? '米妮：我的紅色蝴蝶結不見了，我好苦惱…幫我找找這 6 個發光的地方好嗎？'
         : '這裡也沒有。繼續尋找（${controller.searchedMinnieSpots.length}/6）。';
@@ -256,6 +216,70 @@ class MinnieGardenPage extends GetView<GameController> {
       ),
     );
   }
+}
+
+class _PlutoHelpArrival extends StatelessWidget {
+  const _PlutoHelpArrival({
+    required this.compact,
+    required this.asked,
+    required this.onAsk,
+    required this.onStartSearch,
+  });
+
+  final bool compact;
+  final bool asked;
+  final VoidCallback onAsk;
+  final VoidCallback onStartSearch;
+
+  @override
+  Widget build(BuildContext context) => TweenAnimationBuilder<double>(
+    key: const Key('minnie_pluto_arrival'),
+    tween: Tween(begin: 0, end: 1),
+    duration: const Duration(milliseconds: 1400),
+    curve: Curves.easeOutCubic,
+    builder: (context, value, child) => Opacity(
+      opacity: value,
+      child: Transform.translate(
+        offset: Offset(-70 * (1 - value), 12 * (1 - value)),
+        child: child,
+      ),
+    ),
+    child: SizedBox(
+      width: compact ? 205 : 270,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            decoration: BoxDecoration(
+              color: const Color(0xF2FFFFFF),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: const Color(0xFFFFC44F), width: 2),
+            ),
+            child: Text(
+              asked ? '汪！交給我，我來聞聞看！' : '布魯托慢慢走過來了…',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.w900),
+            ),
+          ),
+          Image.asset(
+            'assets/images/pluto_cutout.png',
+            width: compact ? 115 : 170,
+            fit: BoxFit.contain,
+          ),
+          MagicButton(
+            key: ValueKey(
+              asked ? 'minnie_pluto_start_search' : 'minnie_ask_pluto',
+            ),
+            label: asked ? '下一步：開始聞聞看' : '請布魯托幫忙看看',
+            icon: asked ? Icons.search_rounded : Icons.pets_rounded,
+            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+            onPressed: asked ? onStartSearch : onAsk,
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _SearchGlowSpot extends StatefulWidget {
@@ -352,19 +376,48 @@ class _PlutoBowSearchAnimation extends StatefulWidget {
 class _PlutoBowSearchAnimationState extends State<_PlutoBowSearchAnimation>
     with SingleTickerProviderStateMixin {
   late final AnimationController _animation;
+  int _pauseStep = 0;
+  bool _moving = true;
 
   @override
   void initState() {
     super.initState();
-    _animation =
-        AnimationController(
-            vsync: this,
-            duration: const Duration(milliseconds: 5500),
-          )
-          ..addStatusListener((status) {
-            if (status == AnimationStatus.completed) widget.onCompleted();
-          })
-          ..forward();
+    _animation = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 7000),
+    );
+    _animateTo(.68, const Duration(milliseconds: 4200), nextStep: 1);
+  }
+
+  Future<void> _animateTo(
+    double target,
+    Duration duration, {
+    int? nextStep,
+  }) async {
+    if (mounted) setState(() => _moving = true);
+    await _animation.animateTo(
+      target,
+      duration: duration,
+      curve: Curves.linear,
+    );
+    if (!mounted) return;
+    if (target >= 1) {
+      widget.onCompleted();
+    } else {
+      setState(() {
+        _moving = false;
+        _pauseStep = nextStep ?? _pauseStep;
+      });
+    }
+  }
+
+  void _continueStory() {
+    if (_moving) return;
+    if (_pauseStep == 1) {
+      _animateTo(.86, const Duration(milliseconds: 1500), nextStep: 2);
+    } else {
+      _animateTo(1, const Duration(milliseconds: 1300));
+    }
   }
 
   @override
@@ -378,18 +431,41 @@ class _PlutoBowSearchAnimationState extends State<_PlutoBowSearchAnimation>
     animation: _animation,
     builder: (context, child) {
       final raw = _animation.value;
-      final sniffT = Curves.easeInOut.transform((raw / .74).clamp(0.0, 1.0));
-      final plutoAlignment = Alignment(
+      final sniffT = Curves.easeInOut.transform((raw / .68).clamp(0.0, 1.0));
+      final sniffAlignment = Alignment(
         -0.78 + sniffT * 1.30,
         .18 + math.sin(sniffT * math.pi * 5) * .42,
       );
-      final bowT = Curves.easeInOutCubic.transform(
-        ((raw - .76) / .24).clamp(0.0, 1.0),
+      final approachT = Curves.easeInOutCubic.transform(
+        ((raw - .68) / .18).clamp(0.0, 1.0),
       );
-      final bowAlignment = Alignment.lerp(
+      final giftT = Curves.easeInOutCubic.transform(
+        ((raw - .86) / .08).clamp(0.0, 1.0),
+      );
+      final leaveT = Curves.easeInCubic.transform(
+        ((raw - .92) / .08).clamp(0.0, 1.0),
+      );
+      final approachAlignment = Alignment.lerp(
+        const Alignment(.52, .18),
+        const Alignment(-.35, .45),
+        approachT,
+      )!;
+      final plutoAlignment = raw < .68
+          ? sniffAlignment
+          : Alignment.lerp(
+              approachAlignment,
+              const Alignment(1.35, .18),
+              leaveT,
+            )!;
+      final carryBowAlignment = Alignment.lerp(
         const Alignment(.55, .18),
+        const Alignment(-.23, .43),
+        approachT,
+      )!;
+      final bowAlignment = Alignment.lerp(
+        carryBowAlignment,
         const Alignment(-.82, .92),
-        bowT,
+        giftT,
       )!;
       return Stack(
         children: [
@@ -399,13 +475,19 @@ class _PlutoBowSearchAnimationState extends State<_PlutoBowSearchAnimation>
               offset: Offset(0, -math.sin(sniffT * math.pi * 10).abs() * 8),
               child: Image.asset(
                 'assets/images/pluto_cutout.png',
-                key: const Key('pluto_sniffing'),
+                key: Key(
+                  raw >= .92
+                      ? 'pluto_leaves_after_bow'
+                      : raw >= .68
+                      ? 'pluto_carries_red_bow'
+                      : 'pluto_sniffing',
+                ),
                 width: widget.compact ? 145 : 205,
                 fit: BoxFit.contain,
               ),
             ),
           ),
-          if (raw < .76)
+          if (raw < .62)
             Align(
               alignment: Alignment(0, -.75 + math.sin(raw * math.pi * 8) * .05),
               child: const Text(
@@ -418,24 +500,79 @@ class _PlutoBowSearchAnimationState extends State<_PlutoBowSearchAnimation>
                 ),
               ),
             ),
-          if (raw >= .68)
+          if (raw >= .62 && raw < .79)
+            const Align(
+              alignment: Alignment(0, -.75),
+              child: _GardenSpeechBubble(text: '汪！我找到蝴蝶結了！'),
+            ),
+          if (raw >= .79 && raw < .95)
+            const Align(
+              alignment: Alignment(0, -.75),
+              child: _GardenSpeechBubble(text: '汪！這個蝴蝶結交給你！'),
+            ),
+          if (raw >= .62 && raw < .95)
             Align(
               alignment: bowAlignment,
               child: Transform.translate(
-                offset: Offset(0, -math.sin(bowT * math.pi) * 115),
+                offset: Offset(0, -math.sin(giftT * math.pi) * 115),
                 child: Transform.rotate(
-                  angle: bowT * math.pi * 2,
-                  child: const GameItemArt(
-                    key: Key('red_bow_to_inventory'),
+                  angle: giftT * math.pi * 2,
+                  child: GameItemArt(
+                    key: Key(
+                      giftT > 0 ? 'red_bow_to_inventory' : 'red_bow_found',
+                    ),
                     type: GameItemArtType.redBow,
                     size: 62,
                   ),
                 ),
               ),
             ),
+          if (!_moving && _pauseStep > 0)
+            SafeArea(
+              child: Align(
+                alignment: const Alignment(0, .72),
+                child: MagicButton(
+                  key: ValueKey(
+                    _pauseStep == 1
+                        ? 'minnie_bow_found_next'
+                        : 'minnie_search_next',
+                  ),
+                  label: _pauseStep == 1 ? '請布魯托拿過來' : '收下紅色蝴蝶結',
+                  icon: _pauseStep == 1
+                      ? Icons.pets_rounded
+                      : Icons.redeem_rounded,
+                  onPressed: _continueStory,
+                ),
+              ),
+            ),
         ],
       );
     },
+  );
+}
+
+class _GardenSpeechBubble extends StatelessWidget {
+  const _GardenSpeechBubble({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+    decoration: BoxDecoration(
+      color: const Color(0xF2FFFFFF),
+      borderRadius: BorderRadius.circular(18),
+      border: Border.all(color: const Color(0xFFFFC44F), width: 2),
+      boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 8)],
+    ),
+    child: Text(
+      text,
+      textAlign: TextAlign.center,
+      style: const TextStyle(
+        color: Color(0xFF5D3A15),
+        fontWeight: FontWeight.w900,
+      ),
+    ),
   );
 }
 
@@ -458,25 +595,54 @@ class _MinnieBowExchangeAnimationState
     with SingleTickerProviderStateMixin {
   late final AnimationController _animation;
   bool _markedReturned = false;
+  int _pauseStep = 0;
+  bool _moving = true;
 
   @override
   void initState() {
     super.initState();
     _animation =
         AnimationController(
-            vsync: this,
-            duration: const Duration(milliseconds: 4300),
-          )
-          ..addListener(() {
-            if (!_markedReturned && _animation.value >= .42) {
-              _markedReturned = true;
-              widget.onBowReturned();
-            }
-          })
-          ..addStatusListener((status) {
-            if (status == AnimationStatus.completed) widget.onCompleted();
-          })
-          ..forward();
+          vsync: this,
+          duration: const Duration(milliseconds: 4300),
+        )..addListener(() {
+          if (!_markedReturned && _animation.value >= .42) {
+            _markedReturned = true;
+            widget.onBowReturned();
+          }
+        });
+    _animateTo(.48, const Duration(milliseconds: 2060), nextStep: 1);
+  }
+
+  Future<void> _animateTo(
+    double target,
+    Duration duration, {
+    int? nextStep,
+  }) async {
+    if (mounted) setState(() => _moving = true);
+    await _animation.animateTo(
+      target,
+      duration: duration,
+      curve: Curves.linear,
+    );
+    if (!mounted) return;
+    if (target >= 1) {
+      widget.onCompleted();
+      return;
+    }
+    setState(() {
+      _moving = false;
+      _pauseStep = nextStep ?? _pauseStep;
+    });
+  }
+
+  void _continueStory() {
+    if (_moving) return;
+    if (_pauseStep == 1) {
+      _animateTo(.78, const Duration(milliseconds: 1290), nextStep: 2);
+    } else {
+      _animateTo(1, const Duration(milliseconds: 950));
+    }
   }
 
   @override
@@ -562,6 +728,18 @@ class _MinnieBowExchangeAnimationState
                     type: GameItemArtType.pinkBow,
                     size: 65,
                   ),
+                ),
+              ),
+            ),
+          if (!_moving && _pauseStep > 0)
+            SafeArea(
+              child: Align(
+                alignment: const Alignment(0, .72),
+                child: MagicButton(
+                  key: ValueKey('minnie_exchange_next_$_pauseStep'),
+                  label: _pauseStep == 1 ? '下一步：聽米妮說' : '收下粉色蝴蝶結',
+                  icon: Icons.redeem_rounded,
+                  onPressed: _continueStory,
                 ),
               ),
             ),

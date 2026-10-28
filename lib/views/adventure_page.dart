@@ -40,6 +40,16 @@ class AdventurePage extends GetView<GameController> {
                   _characters(),
                   if (controller.questStarted.value) _questArea(),
                   Align(alignment: Alignment.bottomCenter, child: _bottomHud()),
+                  Positioned(
+                    top: MediaQuery.sizeOf(context).width < 600 ? 10 : 18,
+                    right: MediaQuery.sizeOf(context).width < 600 ? 10 : 18,
+                    child: MagicIconButton(
+                      key: const Key('home_settings_button'),
+                      tooltip: '遊戲設定',
+                      onPressed: _openSettings,
+                      icon: Icons.settings_rounded,
+                    ),
+                  ),
                   if (controller.missionScrollVisible.value)
                     Positioned.fill(
                       child: MissionScrollOverlay(controller: controller),
@@ -81,7 +91,10 @@ class AdventurePage extends GetView<GameController> {
   }
 
   Widget _topBar() => Padding(
-    padding: EdgeInsets.all(
+    padding: EdgeInsets.fromLTRB(
+      MediaQuery.sizeOf(Get.context!).width < 600 ? 10 : 18,
+      MediaQuery.sizeOf(Get.context!).width < 600 ? 10 : 18,
+      MediaQuery.sizeOf(Get.context!).width < 600 ? 68 : 76,
       MediaQuery.sizeOf(Get.context!).width < 600 ? 10 : 18,
     ),
     child: Row(
@@ -90,15 +103,16 @@ class AdventurePage extends GetView<GameController> {
           child: Align(
             alignment: Alignment.centerLeft,
             child: _pill(
-              '👑 ${controller.playerName.value}',
+              controller.playerName.value,
               false,
+              icon: Icons.workspace_premium_rounded,
               compact: MediaQuery.sizeOf(Get.context!).width < 600,
             ),
           ),
         ),
         const SizedBox(width: 8),
         MagicIconButton(
-          tooltip: '查看 20 項生日任務',
+          tooltip: '查看 10 項生日任務',
           onPressed: controller.questStarted.value
               ? controller.openMissionScroll
               : null,
@@ -107,15 +121,21 @@ class AdventurePage extends GetView<GameController> {
         ),
         const SizedBox(width: 6),
         _pill(
-          '⭐ ${controller.stars.value} / 3',
+          '${controller.stars.value} / 3',
           true,
+          icon: Icons.star_rounded,
           compact: MediaQuery.sizeOf(Get.context!).width < 600,
         ),
       ],
     ),
   );
 
-  Widget _pill(String text, bool dark, {bool compact = false}) => Container(
+  Widget _pill(
+    String text,
+    bool dark, {
+    required IconData icon,
+    bool compact = false,
+  }) => Container(
     constraints: BoxConstraints(maxWidth: compact ? 128 : double.infinity),
     padding: EdgeInsets.symmetric(
       horizontal: compact ? 10 : 18,
@@ -125,17 +145,105 @@ class AdventurePage extends GetView<GameController> {
       color: dark ? const Color(0xEE35276D) : const Color(0xEFFFFFFF),
       borderRadius: BorderRadius.circular(24),
     ),
-    child: Text(
-      text,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: TextStyle(
-        color: dark ? Colors.white : const Color(0xFF3A246D),
-        fontSize: compact ? 12 : 14,
-        fontWeight: FontWeight.w800,
-      ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          size: compact ? 16 : 18,
+          color: dark ? const Color(0xFFFFDD69) : const Color(0xFF6E43A2),
+        ),
+        const SizedBox(width: 5),
+        Flexible(
+          child: Text(
+            text,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: dark ? Colors.white : const Color(0xFF3A246D),
+              fontSize: compact ? 12 : 14,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+      ],
     ),
   );
+
+  void _openSettings() {
+    Get.dialog<void>(
+      Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Container(
+          key: const Key('game_settings_dialog'),
+          constraints: const BoxConstraints(maxWidth: 390),
+          padding: const EdgeInsets.all(22),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFFFFFBEC), Color(0xFFF1E5FF)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: const Color(0xFFFFD873), width: 3),
+            boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 28)],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.settings_rounded,
+                size: 45,
+                color: Color(0xFF6D3FA0),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                '遊戲設定',
+                style: TextStyle(
+                  color: Color(0xFF3A246D),
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                '清除後會刪除玩家名字、所有任務進度與道具，而且無法復原。',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Color(0xFF6A6078), height: 1.45),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: MagicButton(
+                      key: const Key('cancel_clear_game_data'),
+                      label: '取消',
+                      icon: Icons.close_rounded,
+                      style: MagicButtonStyle.parchment,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      onPressed: Get.back,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: MagicButton(
+                      key: const Key('confirm_clear_game_data'),
+                      label: '清除所有記憶',
+                      icon: Icons.delete_forever_rounded,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      onPressed: controller.clearAllGameData,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+      barrierDismissible: false,
+    );
+  }
 
   Widget _questArea() => Center(
     child: Padding(
@@ -150,11 +258,11 @@ class AdventurePage extends GetView<GameController> {
             ? Icons.celebration_rounded
             : Icons.search_rounded,
         label: controller.allMissionsCompleted
-            ? '20 項生日任務全部完成！'
+            ? '10 項生日任務全部完成！'
             : controller.completedMissions.value == 0 &&
                   !controller.plutoRecruited.value
             ? '打開任務卷軸'
-            : controller.currentMission.action,
+            : '開始下一個神秘任務',
         style: MagicButtonStyle.parchment,
       ),
     ),
@@ -356,7 +464,11 @@ class _CastleMagicGlowState extends State<_CastleMagicGlow>
                 alignment: sparkle.$1,
                 child: Transform.scale(
                   scale: .7 + _controller.value * .45,
-                  child: Text('✨', style: TextStyle(fontSize: sparkle.$2)),
+                  child: Icon(
+                    Icons.auto_awesome_rounded,
+                    size: sparkle.$2,
+                    color: const Color(0xFFFFE67A),
+                  ),
                 ),
               ),
           ],

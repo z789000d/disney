@@ -126,9 +126,10 @@ class _MagicButtonState extends State<MagicButton> {
                   ),
                   if (_enabled) ...[
                     const SizedBox(width: 8),
-                    Text(
-                      '✦',
-                      style: TextStyle(color: foreground, fontSize: 14),
+                    Icon(
+                      Icons.auto_awesome_rounded,
+                      color: foreground,
+                      size: 15,
                     ),
                   ],
                 ],
@@ -304,7 +305,11 @@ class MagicTextField extends StatelessWidget {
           padding: EdgeInsets.only(right: 12),
           child: Center(
             widthFactor: 1,
-            child: Text('✦', style: TextStyle(color: Color(0xFFD09A32))),
+            child: Icon(
+              Icons.auto_awesome_rounded,
+              color: Color(0xFFD09A32),
+              size: 19,
+            ),
           ),
         ),
         labelStyle: const TextStyle(

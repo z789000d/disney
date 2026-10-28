@@ -81,7 +81,7 @@ class WelcomePage extends GetView<GameController> {
       ),
       const SizedBox(height: 16),
       const Text(
-        '和米奇一起完成 20 項生日限定任務！',
+        '和米奇一起完成 10 項生日限定任務！',
         style: TextStyle(
           color: Colors.white,
           fontSize: 19,

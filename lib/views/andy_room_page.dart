@@ -18,6 +18,7 @@ class AndyRoomPage extends StatefulWidget {
 
 class _AndyRoomPageState extends State<AndyRoomPage> {
   final GameController controller = Get.find<GameController>();
+  final math.Random _dodgeRandom = math.Random();
   Timer? _dodgeTimer;
   late final Worker _battleWorker;
 
@@ -36,8 +37,15 @@ class _AndyRoomPageState extends State<AndyRoomPage> {
 
   void _startDodgeTimer() {
     _dodgeTimer?.cancel();
-    _dodgeTimer = Timer.periodic(const Duration(milliseconds: 520), (_) {
+    _scheduleNextDodge();
+  }
+
+  void _scheduleNextDodge() {
+    if (!controller.toyBattleActive.value) return;
+    final delay = Duration(milliseconds: 360 + _dodgeRandom.nextInt(361));
+    _dodgeTimer = Timer(delay, () {
       controller.dodgeZurg();
+      _scheduleNextDodge();
     });
   }
 
@@ -123,15 +131,23 @@ class _AndyRoomPageState extends State<AndyRoomPage> {
                 BoxShadow(color: Colors.black26, blurRadius: 10),
               ],
             ),
-            child: const Text(
-              '🧸 第二關：安迪的房間',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: Color(0xFF312468),
-                fontSize: 16,
-                fontWeight: FontWeight.w900,
-              ),
+            child: const Row(
+              children: [
+                Icon(Icons.toys_rounded, color: Color(0xFF5B3C93)),
+                SizedBox(width: 7),
+                Expanded(
+                  child: Text(
+                    '第二關：安迪的房間',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Color(0xFF312468),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -311,14 +327,26 @@ class _AndyRoomPageState extends State<AndyRoomPage> {
                           ),
                         ],
                       ),
-                      child: Text(
-                        '⚡ 命中札克！剩餘 $health',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 21,
-                          fontWeight: FontWeight.w900,
-                          shadows: [Shadow(color: Colors.black, blurRadius: 4)],
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.bolt_rounded,
+                            color: Colors.white,
+                            size: 25,
+                          ),
+                          Text(
+                            '命中札克！剩餘 $health',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 21,
+                              fontWeight: FontWeight.w900,
+                              shadows: [
+                                Shadow(color: Colors.black, blurRadius: 4),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -328,15 +356,24 @@ class _AndyRoomPageState extends State<AndyRoomPage> {
               left: 20,
               right: 20,
               bottom: 8,
-              child: Text(
-                '🎯 點擊閃避中的札克，命中 5 次！',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w900,
-                  shadows: [Shadow(color: Colors.black, blurRadius: 6)],
-                ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.adjust_rounded, color: Colors.white, size: 18),
+                  SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      '點擊閃避中的札克，命中 5 次！',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        shadows: [Shadow(color: Colors.black, blurRadius: 6)],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -673,19 +710,54 @@ class _ZurgDefeatSequence extends StatefulWidget {
 class _ZurgDefeatSequenceState extends State<_ZurgDefeatSequence>
     with SingleTickerProviderStateMixin {
   late final AnimationController _animation;
+  int _pauseStep = 0;
+  bool _moving = true;
 
   @override
   void initState() {
     super.initState();
-    _animation =
-        AnimationController(
-            vsync: this,
-            duration: const Duration(milliseconds: 5200),
-          )
-          ..addStatusListener((status) {
-            if (status == AnimationStatus.completed) widget.onCompleted();
-          })
-          ..forward();
+    _animation = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 5200),
+    );
+    _animateTo(.50, const Duration(milliseconds: 2600), nextStep: 1);
+  }
+
+  Future<void> _animateTo(
+    double target,
+    Duration duration, {
+    int? nextStep,
+  }) async {
+    if (mounted) setState(() => _moving = true);
+    await _animation.animateTo(
+      target,
+      duration: duration,
+      curve: Curves.linear,
+    );
+    if (!mounted) return;
+    if (target >= 1) {
+      widget.onCompleted();
+      return;
+    }
+    setState(() {
+      _moving = false;
+      _pauseStep = nextStep ?? _pauseStep;
+    });
+  }
+
+  void _continueStory() {
+    if (_moving) return;
+    switch (_pauseStep) {
+      case 1:
+        _animateTo(.70, const Duration(milliseconds: 1040), nextStep: 2);
+        return;
+      case 2:
+        _animateTo(.92, const Duration(milliseconds: 1450), nextStep: 3);
+        return;
+      default:
+        _animateTo(1, const Duration(milliseconds: 420));
+        return;
+    }
   }
 
   @override
@@ -814,6 +886,22 @@ class _ZurgDefeatSequenceState extends State<_ZurgDefeatSequence>
                           ),
                         ],
                       ),
+                    ),
+                  ),
+                ),
+              if (!_moving && _pauseStep > 0)
+                SafeArea(
+                  child: Align(
+                    alignment: const Alignment(0, .82),
+                    child: MagicButton(
+                      key: ValueKey('zurg_defeat_next_$_pauseStep'),
+                      label: switch (_pauseStep) {
+                        1 => '下一步',
+                        2 => '救出三眼怪',
+                        _ => '繼續',
+                      },
+                      icon: Icons.auto_awesome_rounded,
+                      onPressed: _continueStory,
                     ),
                   ),
                 ),
