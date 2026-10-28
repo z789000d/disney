@@ -13,13 +13,18 @@ class GamePreloadGate extends StatefulWidget {
 class _GamePreloadGateState extends State<GamePreloadGate> {
   static const _images = <String>[
     'assets/images/andy_room.png',
+    'assets/images/anna.png',
     'assets/images/bause.png',
     'assets/images/castle_courtyard.png',
+    'assets/images/elsa.png',
+    'assets/images/frozen_maze.png',
     'assets/images/lotso.png',
     'assets/images/mickey.png',
     'assets/images/mickey_cutout.png',
     'assets/images/minnine_pink.png',
     'assets/images/minnine_red.png',
+    'assets/images/olaf_has_nose.png',
+    'assets/images/olaf_no_nose.png',
     'assets/images/pluto.png',
     'assets/images/pluto_cutout.png',
     'assets/images/pluto_has_bone.png',

@@ -95,7 +95,26 @@ class _FrozenMazePageState extends State<FrozenMazePage>
           key: const Key('frozen_maze_scene'),
           fit: StackFit.expand,
           children: [
-            const CustomPaint(painter: _FrozenBackgroundPainter()),
+            Image.asset(
+              'assets/images/frozen_maze.png',
+              key: const Key('frozen_maze_background'),
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  const CustomPaint(painter: _FrozenBackgroundPainter()),
+            ),
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0x44315D9E),
+                    Color(0x188FD8F4),
+                    Color(0x55E9FAFF),
+                  ],
+                ),
+              ),
+            ),
             SafeArea(
               child: Column(
                 children: [
@@ -168,34 +187,44 @@ class _FrozenMazePageState extends State<FrozenMazePage>
             clipBehavior: Clip.hardEdge,
             children: [
               const Positioned(
-                left: 9,
-                top: 5,
-                child: _FrozenCharacterBadge(
+                left: 5,
+                top: 3,
+                child: _FrozenCharacterArt(
                   name: '安娜',
                   color: Color(0xFF8B4B93),
-                  icon: Icons.favorite_rounded,
+                  asset: 'assets/images/anna.png',
+                  imageKey: Key('frozen_anna'),
+                  width: 100,
+                  height: 168,
                 ),
               ),
               const Positioned(
-                right: 9,
-                top: 5,
-                child: _FrozenCharacterBadge(
+                right: 5,
+                top: 3,
+                child: _FrozenCharacterArt(
                   name: '艾莎',
                   color: Color(0xFF2D8BC0),
-                  icon: Icons.ac_unit_rounded,
+                  asset: 'assets/images/elsa.png',
+                  imageKey: Key('frozen_elsa'),
+                  width: 94,
+                  height: 168,
                 ),
               ),
-              const Align(
-                alignment: Alignment.topCenter,
-                child: Padding(
-                  padding: EdgeInsets.only(top: 5),
-                  child: _FrozenCharacterBadge(
-                    name: '雪寶',
-                    color: Color(0xFF397B9D),
-                    icon: Icons.cloud_rounded,
+              if (progress < _rewardProgress)
+                const Align(
+                  alignment: Alignment.topCenter,
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 7),
+                    child: _FrozenCharacterArt(
+                      name: '雪寶',
+                      color: Color(0xFF397B9D),
+                      asset: 'assets/images/olaf_no_nose.png',
+                      imageKey: Key('frozen_olaf_no_nose'),
+                      width: 84,
+                      height: 120,
+                    ),
                   ),
                 ),
-              ),
               if (dialogueStep >= _story.length) ...[
                 Positioned.fill(
                   child: CustomPaint(
@@ -557,35 +586,58 @@ const _footsteps = <Alignment>[
   Alignment(.55, -.69),
 ];
 
-class _FrozenCharacterBadge extends StatelessWidget {
-  const _FrozenCharacterBadge({
+class _FrozenCharacterArt extends StatelessWidget {
+  const _FrozenCharacterArt({
     required this.name,
     required this.color,
-    required this.icon,
+    required this.asset,
+    required this.imageKey,
+    required this.width,
+    required this.height,
   });
 
   final String name;
   final Color color;
-  final IconData icon;
+  final String asset;
+  final Key imageKey;
+  final double width;
+  final double height;
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-    decoration: BoxDecoration(
-      color: const Color(0xEFFFFFFF),
-      borderRadius: BorderRadius.circular(18),
-      border: Border.all(color: color, width: 2),
-    ),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, color: color, size: 20),
-        const SizedBox(width: 4),
-        Text(
-          name,
-          style: TextStyle(color: color, fontWeight: FontWeight.w900),
-        ),
-      ],
+  Widget build(BuildContext context) => IgnorePointer(
+    child: SizedBox(
+      width: width,
+      height: height,
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          Positioned.fill(
+            bottom: 21,
+            child: Image.asset(
+              asset,
+              key: imageKey,
+              fit: BoxFit.contain,
+              alignment: Alignment.bottomCenter,
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: const Color(0xEFFFFFFF),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: color, width: 1.5),
+            ),
+            child: Text(
+              name,
+              style: TextStyle(
+                color: color,
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+        ],
+      ),
     ),
   );
 }
@@ -603,8 +655,8 @@ class _OlafCelebration extends StatelessWidget {
           Transform.scale(scale: scale, child: child),
       child: Container(
         key: const Key('frozen_olaf_found'),
-        width: 142,
-        padding: const EdgeInsets.all(12),
+        width: 164,
+        padding: const EdgeInsets.fromLTRB(8, 7, 8, 10),
         decoration: BoxDecoration(
           color: const Color(0xF4FFFFFF),
           borderRadius: BorderRadius.circular(25),
@@ -613,11 +665,16 @@ class _OlafCelebration extends StatelessWidget {
             BoxShadow(color: Color(0x8842D8FF), blurRadius: 24),
           ],
         ),
-        child: const Column(
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.ac_unit_rounded, color: Color(0xFF37BDEB), size: 62),
-            Text(
+            Image.asset(
+              'assets/images/olaf_has_nose.png',
+              key: const Key('frozen_olaf_has_nose'),
+              height: 112,
+              fit: BoxFit.contain,
+            ),
+            const Text(
               '雪寶找回鼻子了！',
               textAlign: TextAlign.center,
               style: TextStyle(

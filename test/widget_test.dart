@@ -305,6 +305,10 @@ void main() {
     expect(find.text('安娜'), findsWidgets);
     expect(find.text('艾莎'), findsOneWidget);
     expect(find.text('雪寶'), findsOneWidget);
+    expect(find.byKey(const Key('frozen_maze_background')), findsOneWidget);
+    expect(find.byKey(const Key('frozen_anna')), findsOneWidget);
+    expect(find.byKey(const Key('frozen_elsa')), findsOneWidget);
+    expect(find.byKey(const Key('frozen_olaf_no_nose')), findsOneWidget);
 
     for (var step = 0; step < 3; step++) {
       await tester.tap(find.byKey(const ValueKey('frozen_dialogue_next')));
@@ -327,6 +331,8 @@ void main() {
     await tester.tap(find.byKey(const Key('frozen_carrot')));
     await tester.pump();
     expect(find.byKey(const Key('frozen_olaf_found')), findsOneWidget);
+    expect(find.byKey(const Key('frozen_olaf_has_nose')), findsOneWidget);
+    expect(find.byKey(const Key('frozen_olaf_no_nose')), findsNothing);
     await tester.tap(find.byKey(const Key('frozen_reward_button')));
     await tester.pump();
     expect(find.byKey(const Key('frozen_snowflake_reward')), findsOneWidget);

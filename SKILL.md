@@ -25,6 +25,7 @@ Keep changes consistent with the existing game and minimize network, image-gener
 - Pluto carrying the bone: `assets/images/pluto_has_bone.png`
 - Andy's room background: `assets/images/andy_room.png`
 - Toy rescue cast: `assets/images/woody.png`, `assets/images/bause.png`, `assets/images/slinky_dog.png`, `assets/images/lotso.png`, `assets/images/three_eye.png`, and `assets/images/zurg.png`
+- Frozen maze: `assets/images/frozen_maze.png`, `assets/images/anna.png`, `assets/images/elsa.png`, `assets/images/olaf_no_nose.png`, and `assets/images/olaf_has_nose.png`
 
 Preserve transparency and use these exact assets unless the user names replacements.
 
