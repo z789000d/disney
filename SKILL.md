@@ -44,7 +44,7 @@ Preserve transparency and use these exact assets unless the user names replaceme
 - The main castle initially shows only the princess and Mickey. Pluto appears there only after completing the first mission.
 - Missions unlock sequentially. Show completed missions and the current mission; keep later mission details hidden behind a generic locked row.
 - The complete adventure contains exactly 10 missions. Missions 1–3 are Pluto's bone, the Toy Story alien rescue, and Minnie's bow. Missions 4–10 are Olaf's carrot, Stitch's record party, Simba's courage trial, Aladdin's carpet rescue, Belle's enchanted rose, Pooh's honey maze, and Rapunzel's birthday lantern finale. The final story uses Rapunzel, Pascal, and Eugene to recover sun-emblem fragments and light the kingdom's birthday lanterns.
-- Missions 4–10 currently use the shared playable prototype in `lib/views/prototype_mission_page.dart`: named character placeholders, player-controlled dialogue, a mission-specific moving-target activity, visible progress, a player-triggered reward animation, inventory reward, and saved dialogue/activity progress. Missing character art must not block gameplay; replace a named placeholder with a transparent local asset later without changing mission progression. Never auto-complete a prototype mission before the required target count and the player's explicit reward action.
+- Mission 4 has its dedicated implementation in `lib/views/frozen_maze_page.dart`. Missions 5–10 currently use the shared playable prototype in `lib/views/prototype_mission_page.dart`: named character placeholders, player-controlled dialogue, a mission-specific moving-target activity, visible progress, a player-triggered reward animation, inventory reward, and saved dialogue/activity progress. Missing character art must not block gameplay; replace a named placeholder with a transparent local asset later without changing mission progression. Never auto-complete a prototype mission before the required target count and the player's explicit reward action.
 - Before entering a mission scene, the castle, Mickey hint, main action button, mission scroll, and mission list must call every unfinished mission a generic `神秘任務`; never reveal its title, location, characters, objective, or reward. Reveal the story only inside the mission scene. Completed missions may show their real title and description.
 - The mission scroll opens by moving its top and bottom rods apart while revealing parchment from the center. Closing reverses the same rolling motion before navigation.
 
@@ -95,6 +95,19 @@ Preserve this order:
 6. Minnie thanks the player and sends the code-drawn pink bow into inventory. Complete and save mission three only after the pink bow reaches inventory, then return to the castle.
 
 Persist the six searched spots, Pluto-search state, found red bow, returned-bow state, reward animation state, mission completion, and inventory. Do not render either bow as emoji.
+
+## Fourth mission: Olaf's carrot nose
+
+Preserve this order:
+
+1. Both mission entry points navigate to `/frozen-maze`. Anna explains that the wind blew Olaf's carrot nose into the ice maze; Elsa asks the player to follow the glowing footprints; Anna warns about rolling snowballs.
+2. Dialogue advances only through the player's custom next-step buttons. Do not start the maze until all three lines have been read.
+3. Show eight sequential footprints. Only the next footprint is active. Pressing it animates the player marker along the path instead of completing the step instantly. Three animated snowballs cross separate lanes; continuously detect collision both while the marker is travelling and while it is waiting at a reached footprint.
+4. Any snowball collision, whether on the route or at a reached footprint, resets the footprint progress to zero, moves the marker back to the starting position, restarts the snowball cycle from its beginning, and saves that reset. If no collision occurs, save every successfully reached footprint. Reopening the game resumes at the next saved footprint.
+5. After all eight footprints, reveal a code-drawn carrot. The player must tap it to return Olaf's nose.
+6. Show Olaf's success moment and wait for the player to press `收下魔法雪花`. Animate the code-drawn snowflake above the inventory bar into an inventory slot, then complete mission four and return to the castle.
+
+Do not replace the snowflake reward with Emoji text. Keep the snowball collision area away from the story panel and inventory bar.
 
 ## Verification
 

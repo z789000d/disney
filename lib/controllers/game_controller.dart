@@ -455,6 +455,10 @@ class GameController extends GetxController {
       Get.toNamed('/minnie-garden');
       return;
     }
+    if (index == 3) {
+      Get.toNamed('/frozen-maze');
+      return;
+    }
     Get.toNamed('/mission/${index + 1}');
   }
 
@@ -736,7 +740,33 @@ class GameController extends GetxController {
       Get.toNamed('/minnie-garden');
       return;
     }
+    if (completedMissions.value == 3) {
+      Get.toNamed('/frozen-maze');
+      return;
+    }
     Get.toNamed('/mission/${completedMissions.value + 1}');
+  }
+
+  void followFrozenFootstep() {
+    if (completedMissions.value != 3 ||
+        prototypeDialogueStep(3) < 3 ||
+        prototypeProgress(3) >= 8) {
+      return;
+    }
+    prototypeActionProgress[3] = prototypeProgress(3) + 1;
+    _saveGame();
+  }
+
+  void resetFrozenMazeAfterCollision() {
+    if (completedMissions.value != 3 || prototypeProgress(3) >= 8) return;
+    prototypeActionProgress[3] = 0;
+    _saveGame();
+  }
+
+  void collectFrozenCarrot() {
+    if (completedMissions.value != 3 || prototypeProgress(3) != 8) return;
+    prototypeActionProgress[3] = 9;
+    _saveGame();
   }
 
   int prototypeDialogueStep(int missionIndex) =>

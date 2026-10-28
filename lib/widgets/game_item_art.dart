@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 
-enum GameItemArtType { bone, strawberry, greenSock, redBow, pinkBow }
+enum GameItemArtType {
+  bone,
+  strawberry,
+  greenSock,
+  redBow,
+  pinkBow,
+  magicSnowflake,
+}
 
 class GameItemArt extends StatelessWidget {
   const GameItemArt({super.key, required this.type, this.size = 48});
@@ -14,6 +21,7 @@ class GameItemArt extends StatelessWidget {
     '高飛狗的綠襪子' => GameItemArtType.greenSock,
     '米妮的紅色蝴蝶結' => GameItemArtType.redBow,
     '米妮的粉色蝴蝶結' => GameItemArtType.pinkBow,
+    '魔法雪花' => GameItemArtType.magicSnowflake,
     _ => null,
   };
 
@@ -42,6 +50,8 @@ class _GameItemPainter extends CustomPainter {
         _paintBow(canvas, size, const Color(0xFFE62F45));
       case GameItemArtType.pinkBow:
         _paintBow(canvas, size, const Color(0xFFFF73B5));
+      case GameItemArtType.magicSnowflake:
+        _paintSnowflake(canvas, size);
     }
   }
 
@@ -200,6 +210,45 @@ class _GameItemPainter extends CustomPainter {
       ..strokeWidth = w * .045;
     canvas.drawLine(Offset(w * .21, h * .35), Offset(w * .30, h * .31), shine);
     canvas.drawLine(Offset(w * .70, h * .31), Offset(w * .79, h * .35), shine);
+  }
+
+  void _paintSnowflake(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.shortestSide * .38;
+    final glow = Paint()
+      ..color = const Color(0x5539C9FF)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, radius * 1.2, glow);
+    final stroke = Paint()
+      ..color = const Color(0xFF58D7FF)
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = size.shortestSide * .075;
+    final highlight = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = size.shortestSide * .028;
+    for (var branch = 0; branch < 6; branch++) {
+      final angle = branch * 3.141592653589793 / 3;
+      final end = center + Offset.fromDirection(angle, radius);
+      canvas.drawLine(center, end, stroke);
+      canvas.drawLine(center, end, highlight);
+      for (final fraction in [.55, .78]) {
+        final joint = center + Offset.fromDirection(angle, radius * fraction);
+        for (final side in [-1.0, 1.0]) {
+          final twigEnd =
+              joint + Offset.fromDirection(angle + side * 2.25, radius * .22);
+          canvas.drawLine(joint, twigEnd, stroke);
+          canvas.drawLine(joint, twigEnd, highlight);
+        }
+      }
+    }
+    canvas.drawCircle(
+      center,
+      size.shortestSide * .08,
+      Paint()..color = Colors.white,
+    );
   }
 
   @override

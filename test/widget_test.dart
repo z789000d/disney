@@ -131,7 +131,14 @@ void main() {
     await tester.pump();
     expect(find.textContaining('命中 5 次'), findsOneWidget);
     final firstDodgePosition = Get.find<GameController>().zurgDodgeIndex.value;
-    await tester.pump(const Duration(milliseconds: 900));
+    for (
+      var wait = 0;
+      wait < 8 &&
+          Get.find<GameController>().zurgDodgeIndex.value == firstDodgePosition;
+      wait++
+    ) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
     expect(
       Get.find<GameController>().zurgDodgeIndex.value,
       isNot(firstDodgePosition),
@@ -300,18 +307,30 @@ void main() {
     expect(find.text('雪寶'), findsOneWidget);
 
     for (var step = 0; step < 3; step++) {
-      await tester.tap(find.byKey(const ValueKey('prototype_dialogue_next_3')));
+      await tester.tap(find.byKey(const ValueKey('frozen_dialogue_next')));
       await tester.pump();
     }
-    for (var target = 0; target < 6; target++) {
-      await tester.tap(find.byKey(ValueKey('prototype_target_3_$target')));
-      await tester.pump(const Duration(milliseconds: 400));
+    expect(find.byKey(const ValueKey('frozen_snowball_0')), findsOneWidget);
+    expect(find.byKey(const Key('frozen_maze_traveler')), findsOneWidget);
+    final frozenController = Get.find<GameController>();
+    for (var target = 0; target < 4; target++) {
+      frozenController.followFrozenFootstep();
     }
-    expect(find.byKey(const ValueKey('prototype_complete_3')), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('prototype_reward_3')));
+    expect(frozenController.prototypeProgress(3), 4);
+    frozenController.resetFrozenMazeAfterCollision();
+    expect(frozenController.prototypeProgress(3), 0);
+    for (var target = 0; target < 8; target++) {
+      frozenController.followFrozenFootstep();
+    }
     await tester.pump();
-    expect(find.byKey(const Key('prototype_reward_flying')), findsOneWidget);
-    await tester.pump(const Duration(milliseconds: 1800));
+    expect(find.byKey(const Key('frozen_carrot')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('frozen_carrot')));
+    await tester.pump();
+    expect(find.byKey(const Key('frozen_olaf_found')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('frozen_reward_button')));
+    await tester.pump();
+    expect(find.byKey(const Key('frozen_snowflake_reward')), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 1900));
     await tester.pump(const Duration(milliseconds: 500));
     expect(Get.find<GameController>().completedMissions.value, 4);
     expect(
@@ -331,7 +350,7 @@ void main() {
     expect(restored.inventory.any((item) => item?.name == '米妮的粉色蝴蝶結'), isTrue);
     expect(restored.inventory.any((item) => item?.name == '魔法雪花'), isTrue);
     expect(restored.prototypeDialogueStep(3), 3);
-    expect(restored.prototypeProgress(3), 6);
+    expect(restored.prototypeProgress(3), 9);
     restored.onClose();
 
     final settingsRect = tester.getRect(

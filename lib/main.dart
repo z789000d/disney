@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'controllers/game_controller.dart';
 import 'views/adventure_page.dart';
 import 'views/andy_room_page.dart';
+import 'views/frozen_maze_page.dart';
 import 'views/minnie_garden_page.dart';
 import 'views/pluto_home_page.dart';
 import 'views/prototype_mission_page.dart';
@@ -61,6 +62,7 @@ class MagicKingdomGame extends StatelessWidget {
         GetPage(name: '/', page: () => const WelcomePage()),
         GetPage(name: '/adventure', page: () => const AdventurePage()),
         GetPage(name: '/andy-room', page: () => const AndyRoomPage()),
+        GetPage(name: '/frozen-maze', page: () => const FrozenMazePage()),
         GetPage(name: '/minnie-garden', page: () => const MinnieGardenPage()),
         GetPage(name: '/pluto-home', page: () => const PlutoHomePage()),
         GetPage(
