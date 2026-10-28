@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
@@ -82,33 +83,50 @@ class GameController extends GetxController {
   final plutoBoneCollecting = false.obs;
   final boneGiving = false.obs;
   final plutoRecruited = false.obs;
+  final toyDialogueIndex = 0.obs;
+  final toyBattleActive = false.obs;
+  final zurgHealth = 5.obs;
+  final zurgDodgeIndex = 0.obs;
+  final zurgHitFeedback = false.obs;
+  final zurgHitSequence = 0.obs;
+  final toyDefeatAnimating = false.obs;
+  final toyBattleWon = false.obs;
+  final toyThanksIndex = 0.obs;
+  final toyRewardGiving = false.obs;
+  final searchedMinnieSpots = <int>[].obs;
+  final minniePlutoSearching = false.obs;
+  final minnieRedBowFound = false.obs;
+  final minnieBowReturned = false.obs;
+  final minnieRewardGiving = false.obs;
   final inventory = <InventoryItem?>[].obs;
   final Random _random = Random();
+  Timer? _zurgHitFeedbackTimer;
 
   bool get hasSavedGame => playerName.value.isNotEmpty;
   bool get allPlutoGrassSearched => searchedPlutoGrass.length >= 6;
+  bool get allMinnieSpotsSearched => searchedMinnieSpots.length >= 6;
 
   static const missions = <Mission>[
     Mission(
       title: '布魯托的狗骨頭',
       description: '布魯托現在很餓，幫它在家附近找到狗骨頭。',
       action: '前往布魯托的家',
-      rewardIcon: '🦴',
-      rewardName: '狗骨頭',
+      rewardIcon: '🧦',
+      rewardName: '高飛狗的綠襪子',
     ),
     Mission(
-      title: '米奇的金色鑰匙',
-      description: '幫米奇在花園小徑尋找遺失的鑰匙。',
-      action: '搜索花園',
-      rewardIcon: '🗝️',
-      rewardName: '金色鑰匙',
+      title: '拯救三眼怪',
+      description: '前往安迪的房間，擊敗札克並救回三眼怪。',
+      action: '前往安迪的房間',
+      rewardIcon: '🍓',
+      rewardName: '熊抱哥的草莓',
     ),
     Mission(
-      title: '噴水池的星光',
-      description: '調查城堡噴水池旁閃爍的光芒。',
-      action: '搜索噴水池',
-      rewardIcon: '✨',
-      rewardName: '魔法星屑',
+      title: '米妮的紅色蝴蝶結',
+      description: '前往米妮花園，幫米妮找回不見的紅色蝴蝶結。',
+      action: '前往米妮花園',
+      rewardIcon: '🎀',
+      rewardName: '米妮的粉色蝴蝶結',
     ),
     Mission(
       title: '城堡生日彩帶',
@@ -242,6 +260,22 @@ class GameController extends GetxController {
     const StoryLine(speaker: '米奇', text: '米斯嘎、穆斯嘎、米老鼠～'),
   ];
 
+  static const toyIntroStory = <StoryLine>[
+    StoryLine(speaker: '胡迪', text: '糟了！三眼怪不見了，我到處都找不到他。'),
+    StoryLine(speaker: '巴斯光年', text: '我們搜尋了安迪的房間，還是沒有發現三眼怪。'),
+    StoryLine(speaker: '彈簧狗', text: '我聞到一股奇怪的氣味，好像是從房間另一邊傳來的！'),
+    StoryLine(speaker: '熊抱哥', text: '看起來三眼怪被札克抓走了！'),
+    StoryLine(speaker: '札克', text: '想救回三眼怪？先打贏我再說！'),
+  ];
+
+  List<StoryLine> get toyThanksStory => [
+    const StoryLine(speaker: '三眼怪', text: '你救了我們，我們永遠感謝你！'),
+    StoryLine(speaker: '胡迪', text: '幹得好，${playerName.value}！你是我們最可靠的夥伴。'),
+    const StoryLine(speaker: '巴斯光年', text: '這是一場精彩的星際救援！謝謝你。'),
+    const StoryLine(speaker: '彈簧狗', text: '謝謝你把我們的朋友帶回來！'),
+    const StoryLine(speaker: '熊抱哥', text: '謝謝你！這顆特別的草莓就送給你。'),
+  ];
+
   bool get isLastDialogue => dialogueIndex.value >= story.length - 1;
   bool get allMissionsCompleted => completedMissions.value >= missions.length;
   Mission get currentMission =>
@@ -276,6 +310,33 @@ class GameController extends GetxController {
       );
       plutoBoneFound.value = save['plutoBoneFound'] as bool? ?? false;
       plutoRecruited.value = save['plutoRecruited'] as bool? ?? false;
+      toyDialogueIndex.value = (save['toyDialogueIndex'] as int? ?? 0).clamp(
+        0,
+        toyIntroStory.length - 1,
+      );
+      toyBattleActive.value = save['toyBattleActive'] as bool? ?? false;
+      zurgHealth.value = (save['zurgHealth'] as int? ?? 5).clamp(0, 5);
+      zurgDodgeIndex.value = (save['zurgDodgeIndex'] as int? ?? 0).clamp(0, 4);
+      toyBattleWon.value = save['toyBattleWon'] as bool? ?? false;
+      toyDefeatAnimating.value =
+          save['toyDefeatAnimating'] as bool? ??
+          (zurgHealth.value == 0 && !toyBattleWon.value);
+      toyThanksIndex.value = (save['toyThanksIndex'] as int? ?? 0).clamp(
+        0,
+        toyThanksStory.length - 1,
+      );
+      final savedMinnieSpots =
+          save['searchedMinnieSpots'] as List<dynamic>? ?? const [];
+      searchedMinnieSpots.assignAll(
+        savedMinnieSpots.whereType<int>().where(
+          (index) => index >= 0 && index < 6,
+        ),
+      );
+      minniePlutoSearching.value =
+          save['minniePlutoSearching'] as bool? ?? false;
+      minnieRedBowFound.value = save['minnieRedBowFound'] as bool? ?? false;
+      minnieBowReturned.value = save['minnieBowReturned'] as bool? ?? false;
+      minnieRewardGiving.value = save['minnieRewardGiving'] as bool? ?? false;
       final savedGrass =
           save['searchedPlutoGrass'] as List<dynamic>? ?? const [];
       searchedPlutoGrass.assignAll(
@@ -292,10 +353,29 @@ class GameController extends GetxController {
           );
         }),
       );
+      var saveNeedsUpdate = false;
+      if (plutoRecruited.value && _ensurePlutoSockReward()) {
+        saveNeedsUpdate = true;
+      }
+      // Mission two previously used the generic completion path. If that old
+      // state skipped the Andy's room story, roll it back so it can be played.
+      if (completedMissions.value >= 2 && !toyBattleWon.value) {
+        completedMissions.value = 1;
+        for (var index = 0; index < inventory.length; index++) {
+          if (inventory[index]?.name == '熊抱哥的草莓') {
+            inventory[index] = null;
+          }
+        }
+        saveNeedsUpdate = true;
+      }
+      if (saveNeedsUpdate) await _saveGame();
       castleGlowing.value = false;
       missionScrollVisible.value = false;
       boneGiving.value = false;
       plutoBoneCollecting.value = false;
+      toyRewardGiving.value = false;
+      zurgHitFeedback.value = false;
+      zurgHitSequence.value = 0;
     } catch (_) {
       await _preferences?.remove(_saveKey);
     }
@@ -311,6 +391,18 @@ class GameController extends GetxController {
       'completedMissions': completedMissions.value,
       'plutoBoneFound': plutoBoneFound.value,
       'plutoRecruited': plutoRecruited.value,
+      'toyDialogueIndex': toyDialogueIndex.value,
+      'toyBattleActive': toyBattleActive.value,
+      'zurgHealth': zurgHealth.value,
+      'zurgDodgeIndex': zurgDodgeIndex.value,
+      'toyDefeatAnimating': toyDefeatAnimating.value,
+      'toyBattleWon': toyBattleWon.value,
+      'toyThanksIndex': toyThanksIndex.value,
+      'searchedMinnieSpots': searchedMinnieSpots.toList(),
+      'minniePlutoSearching': minniePlutoSearching.value,
+      'minnieRedBowFound': minnieRedBowFound.value,
+      'minnieBowReturned': minnieBowReturned.value,
+      'minnieRewardGiving': minnieRewardGiving.value,
       'searchedPlutoGrass': searchedPlutoGrass.toList(),
       'inventory': inventory.map((item) => item?.toJson()).toList(),
     };
@@ -340,6 +432,21 @@ class GameController extends GetxController {
     plutoBoneCollecting.value = false;
     boneGiving.value = false;
     plutoRecruited.value = false;
+    toyDialogueIndex.value = 0;
+    toyBattleActive.value = false;
+    zurgHealth.value = 5;
+    zurgDodgeIndex.value = 0;
+    zurgHitFeedback.value = false;
+    zurgHitSequence.value = 0;
+    toyDefeatAnimating.value = false;
+    toyBattleWon.value = false;
+    toyThanksIndex.value = 0;
+    toyRewardGiving.value = false;
+    searchedMinnieSpots.clear();
+    minniePlutoSearching.value = false;
+    minnieRedBowFound.value = false;
+    minnieBowReturned.value = false;
+    minnieRewardGiving.value = false;
     inventory.assignAll(List<InventoryItem?>.filled(10, null));
     _saveGame();
     Get.offNamed('/adventure');
@@ -377,6 +484,14 @@ class GameController extends GetxController {
     questStarted.value = true;
     if (index == 0 && !plutoRecruited.value) {
       Get.toNamed('/pluto-home');
+      return;
+    }
+    if (index == 1) {
+      Get.toNamed('/andy-room');
+      return;
+    }
+    if (index == 2) {
+      Get.toNamed('/minnie-garden');
       return;
     }
     Get.snackbar('任務已開啟', missions[index].description);
@@ -421,6 +536,7 @@ class GameController extends GetxController {
 
   Future<void> completePlutoMission() async {
     if (!boneGiving.value || plutoRecruited.value) return;
+    _ensurePlutoSockReward();
     plutoRecruited.value = true;
     completedMissions.value = 1;
     stars.value = min(3, stars.value + 1);
@@ -429,10 +545,176 @@ class GameController extends GetxController {
     Get.back();
   }
 
+  bool _ensurePlutoSockReward() {
+    const sock = InventoryItem(
+      icon: '🧦',
+      name: '高飛狗的綠襪子',
+      description: '布魯托回到狗屋後送給你的第一關紀念品。',
+    );
+    final existingIndex = inventory.indexWhere(
+      (item) => item?.name == sock.name,
+    );
+    if (existingIndex == 0) return false;
+    if (existingIndex > 0) {
+      final firstItem = inventory[0];
+      inventory[0] = inventory[existingIndex];
+      inventory[existingIndex] = firstItem;
+      return true;
+    }
+    final emptyIndex = inventory.lastIndexWhere((item) => item == null);
+    if (emptyIndex < 0) return false;
+    for (var index = emptyIndex; index > 0; index--) {
+      inventory[index] = inventory[index - 1];
+    }
+    inventory[0] = sock;
+    return true;
+  }
+
+  void nextToyDialogue() {
+    if (toyBattleActive.value || toyBattleWon.value) return;
+    if (toyDialogueIndex.value < toyIntroStory.length - 1) {
+      toyDialogueIndex.value++;
+    } else {
+      toyBattleActive.value = true;
+    }
+    _saveGame();
+  }
+
+  void hitZurg() {
+    if (!toyBattleActive.value || zurgHealth.value <= 0) return;
+    zurgHitFeedback.value = true;
+    zurgHitSequence.value++;
+    _zurgHitFeedbackTimer?.cancel();
+    _zurgHitFeedbackTimer = Timer(const Duration(milliseconds: 700), () {
+      zurgHitFeedback.value = false;
+    });
+    zurgHealth.value--;
+    zurgDodgeIndex.value = (zurgDodgeIndex.value + 2) % 5;
+    if (zurgHealth.value == 0) {
+      toyBattleActive.value = false;
+      toyDefeatAnimating.value = true;
+      toyBattleWon.value = false;
+      toyThanksIndex.value = 0;
+    }
+    _saveGame();
+  }
+
+  void completeZurgDefeat() {
+    if (!toyDefeatAnimating.value) return;
+    toyDefeatAnimating.value = false;
+    toyBattleWon.value = true;
+    toyThanksIndex.value = 0;
+    _saveGame();
+  }
+
+  void dodgeZurg() {
+    if (!toyBattleActive.value || zurgHealth.value <= 0) return;
+    zurgDodgeIndex.value = (zurgDodgeIndex.value + 1) % 5;
+  }
+
+  void nextToyThanks() {
+    if (!toyBattleWon.value || toyRewardGiving.value) return;
+    if (toyThanksIndex.value < toyThanksStory.length - 1) {
+      toyThanksIndex.value++;
+      _saveGame();
+    } else {
+      toyRewardGiving.value = true;
+    }
+  }
+
+  Future<void> completeToyMission() async {
+    if (!toyRewardGiving.value || completedMissions.value != 1) return;
+    _addItem(
+      const InventoryItem(
+        icon: '🍓',
+        name: '熊抱哥的草莓',
+        description: '救回三眼怪後，熊抱哥送給你的紀念草莓。',
+      ),
+    );
+    completedMissions.value = 2;
+    toyRewardGiving.value = false;
+    await _saveGame();
+    Get.back();
+  }
+
+  void searchMinnieSpot(int index) {
+    if (index < 0 ||
+        index >= 6 ||
+        searchedMinnieSpots.contains(index) ||
+        minniePlutoSearching.value ||
+        minnieRedBowFound.value) {
+      return;
+    }
+    searchedMinnieSpots.add(index);
+    _saveGame();
+  }
+
+  void startMinniePlutoSearch() {
+    if (!allMinnieSpotsSearched ||
+        minniePlutoSearching.value ||
+        minnieRedBowFound.value) {
+      return;
+    }
+    minniePlutoSearching.value = true;
+    _saveGame();
+  }
+
+  Future<void> completeMinniePlutoSearch() async {
+    if (!minniePlutoSearching.value || minnieRedBowFound.value) return;
+    _addItem(
+      const InventoryItem(
+        icon: '🎀',
+        name: '米妮的紅色蝴蝶結',
+        description: '布魯托在米妮花園裡聞到並找回的蝴蝶結。',
+      ),
+    );
+    minniePlutoSearching.value = false;
+    minnieRedBowFound.value = true;
+    await _saveGame();
+  }
+
+  void returnRedBowToMinnie() {
+    if (!minnieRedBowFound.value || minnieRewardGiving.value) return;
+    final bowIndex = inventory.indexWhere((item) => item?.name == '米妮的紅色蝴蝶結');
+    if (bowIndex < 0) return;
+    inventory[bowIndex] = null;
+    minnieRewardGiving.value = true;
+    _saveGame();
+  }
+
+  void markMinnieBowReturned() {
+    if (!minnieRewardGiving.value || minnieBowReturned.value) return;
+    minnieBowReturned.value = true;
+    _saveGame();
+  }
+
+  Future<void> completeMinnieMission() async {
+    if (!minnieRewardGiving.value || completedMissions.value != 2) return;
+    _addItem(
+      const InventoryItem(
+        icon: '🎀',
+        name: '米妮的粉色蝴蝶結',
+        description: '米妮為了感謝你找回紅色蝴蝶結而送的禮物。',
+      ),
+    );
+    completedMissions.value = 3;
+    minnieRewardGiving.value = false;
+    await _saveGame();
+    Get.back();
+  }
+
   void performCurrentMission() {
     if (allMissionsCompleted) return;
     if (completedMissions.value == 0 && !plutoRecruited.value) {
       openMissionScroll();
+      return;
+    }
+    if (completedMissions.value == 1) {
+      Get.toNamed('/andy-room');
+      return;
+    }
+    if (completedMissions.value == 2) {
+      Get.toNamed('/minnie-garden');
       return;
     }
     final missionIndex = completedMissions.value;
@@ -494,7 +776,7 @@ class GameController extends GetxController {
     final item = inventory[index];
     if (item == null) return;
     Get.snackbar(
-      '${item.icon} ${item.name}',
+      item.name,
       '${item.description}\n持有數量：${item.quantity}',
       snackPosition: SnackPosition.BOTTOM,
       backgroundColor: Colors.white,
@@ -503,6 +785,7 @@ class GameController extends GetxController {
 
   @override
   void onClose() {
+    _zurgHitFeedbackTimer?.cancel();
     nameController.dispose();
     super.onClose();
   }

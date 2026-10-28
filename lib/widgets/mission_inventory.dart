@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../controllers/game_controller.dart';
+import 'game_item_art.dart';
 import 'game_widgets.dart';
 
 class MissionScrollOverlay extends StatefulWidget {
@@ -568,12 +569,20 @@ class InventoryBar extends StatelessWidget {
                             : Stack(
                                 children: [
                                   Center(
-                                    child: Text(
-                                      item.icon,
-                                      style: TextStyle(
-                                        fontSize: compact ? 22 : 27,
+                                    child: switch (GameItemArt.typeForName(
+                                      item.name,
+                                    )) {
+                                      final type? => GameItemArt(
+                                        type: type,
+                                        size: compact ? 31 : 37,
                                       ),
-                                    ),
+                                      null => Text(
+                                        item.icon,
+                                        style: TextStyle(
+                                          fontSize: compact ? 22 : 27,
+                                        ),
+                                      ),
+                                    },
                                   ),
                                   if (item.quantity > 1)
                                     Positioned(

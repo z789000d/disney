@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 
 import '../controllers/game_controller.dart';
 import '../widgets/animated_characters.dart';
+import '../widgets/game_item_art.dart';
 import '../widgets/game_widgets.dart';
 import '../widgets/mission_inventory.dart';
 
@@ -49,6 +50,7 @@ class PlutoHomePage extends GetView<GameController> {
                           else if (controller.plutoBoneFound.value)
                             const _SpeechBubble(text: '汪！你找到了！點一下骨頭給我吧！'),
                           AnimatedPlutoCharacter(
+                            key: const Key('pluto_yard_character'),
                             width: compact ? 150 : 220,
                             talking: true,
                           ),
@@ -132,12 +134,12 @@ class PlutoHomePage extends GetView<GameController> {
 
   List<Widget> _searchGrassPatches(BoxConstraints constraints) {
     const positions = <(double, double)>[
-      (.07, .22),
-      (.31, .17),
-      (.55, .24),
-      (.79, .18),
-      (.23, .52),
-      (.69, .51),
+      (.04, .16),
+      (.28, .14),
+      (.52, .17),
+      (.76, .14),
+      (.20, .35),
+      (.62, .35),
     ];
     return List<Widget>.generate(positions.length, (index) {
       final position = positions[index];
@@ -185,7 +187,7 @@ class PlutoHomePage extends GetView<GameController> {
                     : controller.plutoBoneCollecting.value
                     ? '找到骨頭了！正在放進道具欄…'
                     : controller.plutoBoneFound.value
-                    ? '骨頭已放進道具欄！點擊 🦴 交給布魯托。'
+                    ? '骨頭已放進道具欄！點擊狗骨頭交給布魯托。'
                     : controller.allPlutoGrassSearched
                     ? '六處都找過了！新的發光草叢出現了，快點它看看。'
                     : '先搜索院子裡的 6 叢草（${controller.searchedPlutoGrass.length}/6）。',
@@ -393,10 +395,10 @@ class _BoneToInventoryAnimationState extends State<_BoneToInventoryAnimation>
                 angle: t * math.pi * 2,
                 child: Transform.scale(
                   scale: scale,
-                  child: const Text(
-                    '🦴',
+                  child: const GameItemArt(
                     key: Key('bone_to_inventory'),
-                    style: TextStyle(fontSize: 52),
+                    type: GameItemArtType.bone,
+                    size: 58,
                   ),
                 ),
               ),
@@ -436,7 +438,7 @@ class _PlutoRunHomeAnimationState extends State<_PlutoRunHomeAnimation>
     _animation =
         AnimationController(
             vsync: this,
-            duration: const Duration(milliseconds: 4000),
+            duration: const Duration(milliseconds: 7000),
           )
           ..addStatusListener((status) {
             if (status == AnimationStatus.completed) widget.onCompleted();
@@ -454,31 +456,49 @@ class _PlutoRunHomeAnimationState extends State<_PlutoRunHomeAnimation>
   Widget build(BuildContext context) => AnimatedBuilder(
     animation: _animation,
     builder: (context, child) {
-      const giftEnd = .30;
       final raw = _animation.value;
-      final giftT = Curves.easeInOutCubic.transform(
-        (raw / giftEnd).clamp(0.0, 1.0),
+      final boneT = Curves.easeInOutCubic.transform(
+        (raw / .18).clamp(0.0, 1.0),
       );
       final runT = Curves.easeInOutCubic.transform(
-        ((raw - giftEnd) / (1 - giftEnd)).clamp(0.0, 1.0),
+        ((raw - .18) / .37).clamp(0.0, 1.0),
       );
-      final alignment = Alignment.lerp(
+      final runAlignment = Alignment.lerp(
         const Alignment(.68, .08),
         Alignment(widget.compact ? -.38 : -.42, .12),
         runT,
       )!;
       final enteringHouse = ((runT - .72) / .28).clamp(0.0, 1.0);
-      final scale = 1 - enteringHouse * .72;
-      final bounce = math.sin(runT * math.pi * 8).abs() * (1 - runT) * 18;
+      final runScale = 1 - enteringHouse * .72;
+      final runBounce = math.sin(runT * math.pi * 8).abs() * (1 - runT) * 18;
       final bonePosition = Alignment.lerp(
         const Alignment(-.82, .90),
         const Alignment(.66, .10),
-        giftT,
+        boneT,
       )!;
-      final boneArc = math.sin(giftT * math.pi) * 120;
+      final boneArc = math.sin(boneT * math.pi) * 120;
+      final returnT = Curves.easeOutCubic.transform(
+        ((raw - .63) / .21).clamp(0.0, 1.0),
+      );
+      final returnAlignment = Alignment.lerp(
+        Alignment(widget.compact ? -.38 : -.42, .12),
+        const Alignment(.42, .08),
+        returnT,
+      )!;
+      final returnBounce = math.sin(returnT * math.pi * 5).abs() * 13;
+      final returnOpacity = (returnT / .18).clamp(0.0, 1.0);
+      final sockT = Curves.easeInOutCubic.transform(
+        ((raw - .84) / .16).clamp(0.0, 1.0),
+      );
+      final sockPosition = Alignment.lerp(
+        const Alignment(.48, .08),
+        const Alignment(-.82, .90),
+        sockT,
+      )!;
+      final sockArc = math.sin(sockT * math.pi) * 115;
       return Stack(
         children: [
-          if (raw < giftEnd) ...[
+          if (raw < .18) ...[
             Align(
               alignment: const Alignment(.68, .08),
               child: Image.asset(
@@ -492,25 +512,25 @@ class _PlutoRunHomeAnimationState extends State<_PlutoRunHomeAnimation>
               child: Transform.translate(
                 offset: Offset(0, -boneArc),
                 child: Transform.rotate(
-                  angle: giftT * math.pi * 2,
-                  child: const Text(
-                    '🦴',
+                  angle: boneT * math.pi * 2,
+                  child: const GameItemArt(
                     key: Key('bone_to_pluto'),
-                    style: TextStyle(fontSize: 50),
+                    type: GameItemArtType.bone,
+                    size: 56,
                   ),
                 ),
               ),
             ),
-          ] else
+          ] else if (raw < .55)
             Align(
-              alignment: alignment,
+              alignment: runAlignment,
               child: Transform.translate(
-                offset: Offset(0, -bounce),
+                offset: Offset(0, -runBounce),
                 child: Opacity(
                   opacity: 1 - enteringHouse,
                   child: Transform(
                     alignment: Alignment.center,
-                    transform: Matrix4.diagonal3Values(-scale, scale, 1),
+                    transform: Matrix4.diagonal3Values(-runScale, runScale, 1),
                     child: Image.asset(
                       'assets/images/pluto_has_bone.png',
                       key: const Key('pluto_has_bone'),
@@ -521,20 +541,92 @@ class _PlutoRunHomeAnimationState extends State<_PlutoRunHomeAnimation>
                 ),
               ),
             ),
-          if (raw >= giftEnd && runT < .20)
+          if (raw >= .18 && runT < .20)
             Align(
               alignment: const Alignment(.66, -.42),
               child: Opacity(
                 opacity: (1 - runT / .20).clamp(0, 1),
-                child: const Text('❤️ 汪！', style: TextStyle(fontSize: 34)),
+                child: const Icon(
+                  Icons.favorite_rounded,
+                  color: Color(0xFFE93B51),
+                  size: 40,
+                ),
               ),
             ),
-          if (runT > .76)
+          if (raw >= .55 && raw < .68)
             Align(
               alignment: Alignment(widget.compact ? -.4 : -.44, -.14),
               child: Opacity(
-                opacity: math.sin(enteringHouse * math.pi).clamp(0, 1),
-                child: const Text('✨', style: TextStyle(fontSize: 42)),
+                opacity: math.sin(((raw - .55) / .13) * math.pi).clamp(0, 1),
+                child: const Icon(
+                  Icons.auto_awesome_rounded,
+                  color: Color(0xFFFFD54F),
+                  size: 48,
+                  shadows: [Shadow(color: Colors.white, blurRadius: 12)],
+                ),
+              ),
+            ),
+          if (raw >= .63)
+            Align(
+              alignment: raw < .84
+                  ? returnAlignment
+                  : const Alignment(.42, .08),
+              child: Transform.translate(
+                offset: Offset(0, raw < .84 ? -returnBounce : 0),
+                child: Opacity(
+                  opacity: raw < .84 ? returnOpacity : 1,
+                  child: SizedBox(
+                    width: widget.compact ? 175 : 235,
+                    height: widget.compact ? 170 : 225,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/images/pluto_cutout.png',
+                          key: const Key('pluto_returns_with_sock'),
+                          width: widget.compact ? 165 : 225,
+                          fit: BoxFit.contain,
+                        ),
+                        if (raw < .84)
+                          Positioned(
+                            right: widget.compact ? 5 : 8,
+                            top: widget.compact ? 49 : 62,
+                            child: Transform.rotate(
+                              angle: -.35,
+                              child: const GameItemArt(
+                                key: Key('pluto_sock_return'),
+                                type: GameItemArtType.greenSock,
+                                size: 40,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          if (raw >= .70)
+            Align(
+              alignment: const Alignment(0, -.58),
+              child: Opacity(
+                opacity: raw < .84 ? returnT : (1 - sockT).clamp(0, 1),
+                child: const _SpeechBubble(text: '汪！這隻綠襪子送給你！'),
+              ),
+            ),
+          if (raw >= .84)
+            Align(
+              alignment: sockPosition,
+              child: Transform.translate(
+                offset: Offset(0, -sockArc),
+                child: Transform.rotate(
+                  angle: sockT * math.pi * 2,
+                  child: const GameItemArt(
+                    key: Key('sock_to_inventory'),
+                    type: GameItemArtType.greenSock,
+                    size: 55,
+                  ),
+                ),
               ),
             ),
         ],
