@@ -67,6 +67,11 @@ class GameController extends GetxController {
   GameController([this._preferences]);
 
   static const _saveKey = 'birthday_disney_save_v1';
+  // Example: flutter run --dart-define=START_MISSION=5
+  static const developerStartMissionNumber = int.fromEnvironment(
+    'START_MISSION',
+    defaultValue: 1,
+  );
   final SharedPreferences? _preferences;
   final nameController = TextEditingController();
   final playerName = ''.obs;
@@ -99,6 +104,11 @@ class GameController extends GetxController {
   final minnieRewardGiving = false.obs;
   final prototypeDialogueSteps = <int, int>{}.obs;
   final prototypeActionProgress = <int, int>{}.obs;
+  final aladdinPlayerColumn = 0.obs;
+  final aladdinPlayerRow = 1.obs;
+  final aladdinJafarHealth = 12.obs;
+  final aladdinGenieRescued = false.obs;
+  final aladdinWish = ''.obs;
   final inventory = <InventoryItem?>[].obs;
   final Random _random = Random();
   Timer? _zurgHitFeedbackTimer;
@@ -137,11 +147,11 @@ class GameController extends GetxController {
       rewardName: '魔法雪花',
     ),
     Mission(
-      title: '史迪奇的唱片派對',
-      description: '幫莉蘿收集被史迪奇弄亂的唱片，依照節奏修好海灘派對。',
-      action: '前往夏威夷海灘',
-      rewardIcon: 'hibiscus',
-      rewardName: '紅色扶桑花',
+      title: '阿拉丁的魔毯救援',
+      description: '操控阿拉丁的魔毯閃避賈方魔法，擊敗賈方並從神燈中救回精靈。',
+      action: '飛往阿格拉巴',
+      rewardIcon: 'wish',
+      rewardName: '精靈的一個願望',
     ),
     Mission(
       title: '辛巴的勇氣試煉',
@@ -151,11 +161,11 @@ class GameController extends GetxController {
       rewardName: '勇氣爪印徽章',
     ),
     Mission(
-      title: '阿拉丁的魔毯救援',
-      description: '和阿拉丁、茉莉乘魔毯穿越金色圓環，從賈方的魔法中救出精靈。',
-      action: '飛往阿格拉巴',
-      rewardIcon: 'lamp',
-      rewardName: '迷你神燈',
+      title: '史迪奇的唱片派對',
+      description: '幫莉蘿收集被史迪奇弄亂的唱片，依照節奏修好海灘派對。',
+      action: '前往夏威夷海灘',
+      rewardIcon: 'hibiscus',
+      rewardName: '紅色扶桑花',
     ),
     Mission(
       title: '貝兒的魔法玫瑰',
@@ -288,6 +298,16 @@ class GameController extends GetxController {
         save['prototypeActionProgress'],
         prototypeActionProgress,
       );
+      aladdinPlayerColumn.value = (save['aladdinPlayerColumn'] as int? ?? 0)
+          .clamp(0, 2);
+      aladdinPlayerRow.value = (save['aladdinPlayerRow'] as int? ?? 1).clamp(
+        0,
+        2,
+      );
+      aladdinJafarHealth.value = (save['aladdinJafarHealth'] as int? ?? 12)
+          .clamp(0, 12);
+      aladdinGenieRescued.value = save['aladdinGenieRescued'] as bool? ?? false;
+      aladdinWish.value = save['aladdinWish'] as String? ?? '';
       final savedGrass =
           save['searchedPlutoGrass'] as List<dynamic>? ?? const [];
       searchedPlutoGrass.assignAll(
@@ -361,6 +381,11 @@ class GameController extends GetxController {
       'prototypeActionProgress': prototypeActionProgress.map(
         (key, value) => MapEntry('$key', value),
       ),
+      'aladdinPlayerColumn': aladdinPlayerColumn.value,
+      'aladdinPlayerRow': aladdinPlayerRow.value,
+      'aladdinJafarHealth': aladdinJafarHealth.value,
+      'aladdinGenieRescued': aladdinGenieRescued.value,
+      'aladdinWish': aladdinWish.value,
       'searchedPlutoGrass': searchedPlutoGrass.toList(),
       'inventory': inventory.map((item) => item?.toJson()).toList(),
     };
@@ -408,7 +433,9 @@ class GameController extends GetxController {
     minnieRewardGiving.value = false;
     prototypeDialogueSteps.clear();
     prototypeActionProgress.clear();
+    _resetAladdinState();
     inventory.assignAll(List<InventoryItem?>.filled(10, null));
+    _applyDeveloperStartMission();
     _saveGame();
     Get.offNamed('/adventure');
   }
@@ -457,6 +484,10 @@ class GameController extends GetxController {
     }
     if (index == 3) {
       Get.toNamed('/frozen-maze');
+      return;
+    }
+    if (index == 4) {
+      Get.toNamed('/aladdin-flight');
       return;
     }
     Get.toNamed('/mission/${index + 1}');
@@ -722,6 +753,7 @@ class GameController extends GetxController {
     minnieRewardGiving.value = false;
     prototypeDialogueSteps.clear();
     prototypeActionProgress.clear();
+    _resetAladdinState();
     inventory.assignAll(List<InventoryItem?>.filled(10, null));
     Get.offAllNamed('/');
   }
@@ -744,7 +776,85 @@ class GameController extends GetxController {
       Get.toNamed('/frozen-maze');
       return;
     }
+    if (completedMissions.value == 4) {
+      Get.toNamed('/aladdin-flight');
+      return;
+    }
     Get.toNamed('/mission/${completedMissions.value + 1}');
+  }
+
+  void moveAladdin(int columnDelta, int rowDelta) {
+    if (completedMissions.value != 4 ||
+        prototypeDialogueStep(4) < 3 ||
+        prototypeProgress(4) >= 12) {
+      return;
+    }
+    aladdinPlayerColumn.value = (aladdinPlayerColumn.value + columnDelta).clamp(
+      0,
+      2,
+    );
+    aladdinPlayerRow.value = (aladdinPlayerRow.value + rowDelta).clamp(0, 2);
+    _saveGame();
+  }
+
+  void recordAladdinDodge() {
+    if (completedMissions.value != 4 ||
+        prototypeDialogueStep(4) < 3 ||
+        prototypeProgress(4) >= 12) {
+      return;
+    }
+    prototypeActionProgress[4] = prototypeProgress(4) + 1;
+    _saveGame();
+  }
+
+  void hitAladdinJafar() {
+    if (completedMissions.value != 4 ||
+        prototypeProgress(4) < 12 ||
+        aladdinJafarHealth.value <= 0 ||
+        aladdinGenieRescued.value) {
+      return;
+    }
+    aladdinJafarHealth.value--;
+    _saveGame();
+  }
+
+  void rescueAladdinGenie() {
+    if (completedMissions.value != 4 ||
+        aladdinJafarHealth.value > 0 ||
+        aladdinGenieRescued.value) {
+      return;
+    }
+    aladdinGenieRescued.value = true;
+    _saveGame();
+  }
+
+  void chooseAladdinWish(String wish) {
+    const choices = {'勇氣', '幸福', '冒險', '友誼'};
+    if (completedMissions.value != 4 ||
+        !aladdinGenieRescued.value ||
+        !choices.contains(wish)) {
+      return;
+    }
+    aladdinWish.value = wish;
+    _saveGame();
+  }
+
+  Future<void> completeAladdinMission() async {
+    if (completedMissions.value != 4 ||
+        !aladdinGenieRescued.value ||
+        aladdinWish.value.isEmpty) {
+      return;
+    }
+    _addItem(
+      InventoryItem(
+        icon: 'wish',
+        name: '精靈的${aladdinWish.value}願望',
+        description: '從神燈救回精靈後，精靈送給你的生日願望。',
+      ),
+    );
+    completedMissions.value = 5;
+    await _saveGame();
+    Get.back();
   }
 
   void followFrozenFootstep() {
@@ -827,6 +937,51 @@ class GameController extends GetxController {
         target[key] = max(0, value);
       }
     }
+  }
+
+  void _resetAladdinState() {
+    aladdinPlayerColumn.value = 0;
+    aladdinPlayerRow.value = 1;
+    aladdinJafarHealth.value = 12;
+    aladdinGenieRescued.value = false;
+    aladdinWish.value = '';
+  }
+
+  void _applyDeveloperStartMission() {
+    final startMission = developerStartMissionNumber.clamp(1, missions.length);
+    final skippedCount = startMission - 1;
+    if (skippedCount <= 0) return;
+    completedMissions.value = skippedCount;
+    dialogueIndex.value = story.length - 1;
+    questStarted.value = true;
+    plutoRecruited.value = skippedCount >= 1;
+    toyBattleWon.value = skippedCount >= 2;
+    zurgHealth.value = skippedCount >= 2 ? 0 : 5;
+    minniePlutoAsked.value = skippedCount >= 3;
+    minnieRedBowFound.value = skippedCount >= 3;
+    minnieBowReturned.value = skippedCount >= 3;
+    if (skippedCount >= 5) {
+      aladdinJafarHealth.value = 0;
+      aladdinGenieRescued.value = true;
+      aladdinWish.value = '冒險';
+    }
+    stars.value = skippedCount >= 7 ? 2 : 1;
+    for (var index = 0; index < skippedCount; index++) {
+      if (index >= 3) {
+        prototypeDialogueSteps[index] = 99;
+        prototypeActionProgress[index] = 99;
+      }
+      final mission = missions[index];
+      final itemName = index == 4 ? '精靈的冒險願望' : mission.rewardName;
+      _addItem(
+        InventoryItem(
+          icon: mission.rewardIcon,
+          name: itemName,
+          description: '使用開發起始關卡旗標自動補上的前置任務獎勵。',
+        ),
+      );
+    }
+    if (plutoRecruited.value) _ensurePlutoSockReward();
   }
 
   bool _addItem(InventoryItem item) {

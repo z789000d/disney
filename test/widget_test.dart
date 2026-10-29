@@ -18,6 +18,7 @@ void main() {
     final preferences = await SharedPreferences.getInstance();
     Get.put(GameController(preferences));
     expect(GameController.missions.length, 10);
+    expect(GameController.developerStartMissionNumber, 1);
     expect(GameController.missions.last.title, '樂佩的生日天燈');
     expect(GameController.missions.last.rewardName, '樂佩的太陽天燈');
     await tester.pumpWidget(const MagicKingdomGame(preloadAssets: false));
@@ -344,10 +345,55 @@ void main() {
       isTrue,
     );
 
+    await tester.tap(find.text('開始下一個神秘任務'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.text('第 5 關：阿拉丁的魔毯救援'), findsOneWidget);
+    for (var step = 0; step < 3; step++) {
+      await tester.tap(find.byKey(const Key('aladdin_dialogue_next')));
+      await tester.pump();
+    }
+    expect(find.byKey(const Key('aladdin_carpet_player')), findsOneWidget);
+    expect(find.byKey(const Key('aladdin_move_up')), findsOneWidget);
+    final aladdinController = Get.find<GameController>();
+    await tester.tap(find.byKey(const Key('aladdin_move_right')));
+    await tester.pump();
+    expect(aladdinController.aladdinPlayerColumn.value, 1);
+    await tester.tap(find.byKey(const Key('aladdin_move_left')));
+    await tester.pump();
+    expect(aladdinController.aladdinPlayerColumn.value, 0);
+    for (var wave = 0; wave < 12; wave++) {
+      aladdinController.recordAladdinDodge();
+    }
+    await tester.pump();
+    expect(find.byKey(const Key('aladdin_jafar_target')), findsOneWidget);
+    for (var hit = 0; hit < 12; hit++) {
+      await tester.tap(find.byKey(const Key('aladdin_jafar_target')));
+      await tester.pump(const Duration(milliseconds: 20));
+    }
+    expect(aladdinController.aladdinJafarHealth.value, 0);
+    await tester.tap(find.byKey(const Key('aladdin_rescue_genie')));
+    await tester.pump();
+    expect(find.byKey(const Key('aladdin_freed_genie')), findsOneWidget);
+    for (final wish in ['勇氣', '幸福', '冒險', '友誼']) {
+      expect(find.byKey(ValueKey('aladdin_wish_$wish')), findsOneWidget);
+    }
+    await tester.tap(find.byKey(const ValueKey('aladdin_wish_冒險')));
+    await tester.pump();
+    expect(aladdinController.aladdinWish.value, '冒險');
+    await tester.tap(find.byKey(const Key('aladdin_finish_mission')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(aladdinController.completedMissions.value, 5);
+    expect(
+      aladdinController.inventory.any((item) => item?.name == '精靈的冒險願望'),
+      isTrue,
+    );
+
     final restored = GameController(preferences);
     await restored.restoreSavedGame();
     expect(restored.playerName.value, '小星');
-    expect(restored.completedMissions.value, 4);
+    expect(restored.completedMissions.value, 5);
     expect(restored.stars.value, 1);
     expect(restored.plutoRecruited.value, isTrue);
     expect(restored.minniePlutoAsked.value, isTrue);
@@ -355,8 +401,11 @@ void main() {
     expect(restored.inventory.any((item) => item?.name == '熊抱哥的草莓'), isTrue);
     expect(restored.inventory.any((item) => item?.name == '米妮的粉色蝴蝶結'), isTrue);
     expect(restored.inventory.any((item) => item?.name == '魔法雪花'), isTrue);
+    expect(restored.inventory.any((item) => item?.name == '精靈的冒險願望'), isTrue);
     expect(restored.prototypeDialogueStep(3), 3);
     expect(restored.prototypeProgress(3), 9);
+    expect(restored.prototypeDialogueStep(4), 3);
+    expect(restored.prototypeProgress(4), 12);
     restored.onClose();
 
     final settingsRect = tester.getRect(

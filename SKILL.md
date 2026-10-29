@@ -44,8 +44,9 @@ Preserve transparency and use these exact assets unless the user names replaceme
 - Flying bones, socks, strawberries, and bows must be later children in the scene `Stack` (or use the outermost overlay), so reward items always render in front of every character.
 - The main castle initially shows only the princess and Mickey. Pluto appears there only after completing the first mission.
 - Missions unlock sequentially. Show completed missions and the current mission; keep later mission details hidden behind a generic locked row.
-- The complete adventure contains exactly 10 missions. Missions 1–3 are Pluto's bone, the Toy Story alien rescue, and Minnie's bow. Missions 4–10 are Olaf's carrot, Stitch's record party, Simba's courage trial, Aladdin's carpet rescue, Belle's enchanted rose, Pooh's honey maze, and Rapunzel's birthday lantern finale. The final story uses Rapunzel, Pascal, and Eugene to recover sun-emblem fragments and light the kingdom's birthday lanterns.
-- Mission 4 has its dedicated implementation in `lib/views/frozen_maze_page.dart`. Missions 5–10 currently use the shared playable prototype in `lib/views/prototype_mission_page.dart`: named character placeholders, player-controlled dialogue, a mission-specific moving-target activity, visible progress, a player-triggered reward animation, inventory reward, and saved dialogue/activity progress. Missing character art must not block gameplay; replace a named placeholder with a transparent local asset later without changing mission progression. Never auto-complete a prototype mission before the required target count and the player's explicit reward action.
+- The complete adventure contains exactly 10 missions. Missions 1–3 are Pluto's bone, the Toy Story alien rescue, and Minnie's bow. Missions 4–10 are Olaf's carrot, Aladdin's carpet rescue, Simba's courage trial, Stitch's record party, Belle's enchanted rose, Pooh's honey maze, and Rapunzel's birthday lantern finale. The final story uses Rapunzel, Pascal, and Eugene to recover sun-emblem fragments and light the kingdom's birthday lanterns.
+- Missions 4 and 5 have dedicated implementations in `lib/views/frozen_maze_page.dart` and `lib/views/aladdin_flight_page.dart`. Missions 6–10 currently use the shared playable prototype in `lib/views/prototype_mission_page.dart`: named character placeholders, player-controlled dialogue, a mission-specific moving-target activity, visible progress, a player-triggered reward animation, inventory reward, and saved dialogue/activity progress. Missing character art must not block gameplay; replace a named placeholder with a transparent local asset later without changing mission progression. Never auto-complete a prototype mission before the required target count and the player's explicit reward action.
+- Developer mission skipping uses the compile-time `START_MISSION` integer flag. Keep the default at mission 1. A fresh adventure launched with, for example, `--dart-define=START_MISSION=5` must mark missions 1–4 complete, seed their required state and rewards, and make mission 5 the next hidden mission. Existing saved games remain authoritative until game memory is cleared.
 - Before entering a mission scene, the castle, Mickey hint, main action button, mission scroll, and mission list must call every unfinished mission a generic `神秘任務`; never reveal its title, location, characters, objective, or reward. Reveal the story only inside the mission scene. Completed missions may show their real title and description.
 - The mission scroll opens by moving its top and bottom rods apart while revealing parchment from the center. Closing reverses the same rolling motion before navigation.
 
@@ -109,6 +110,20 @@ Preserve this order:
 6. Show Olaf's success moment and wait for the player to press `收下魔法雪花`. Animate the code-drawn snowflake above the inventory bar into an inventory slot, then complete mission four and return to the castle.
 
 Do not replace the snowflake reward with Emoji text. Keep the snowball collision area away from the story panel and inventory bar.
+
+## Fifth mission: Aladdin's carpet rescue
+
+Preserve this order:
+
+1. Both mission entry points navigate to `/aladdin-flight`. Aladdin explains that Jafar sealed the Genie in the lamp and filled the sky with magic attacks.
+2. The player controls Aladdin and the carpet with four explicit up/down/left/right controls on a 3-by-3 flight grid.
+3. Run 12 obstacle waves from right to left. Each wave blocks one or two lanes, always leaving at least one safe lane. A collision repeats the current wave without granting progress; each successfully avoided wave is saved.
+4. After all waves, Jafar appears in the center. The player must repeatedly tap Jafar 12 times; every hit visibly reacts and saves health.
+5. After Jafar reaches zero health, show his magic fading and wait for the player to press the custom button that opens the lamp and rescues the Genie.
+6. The Genie says `感謝你把我救回來！我送你一個願望，選一個吧！` and offers exactly four choices: courage, happiness, adventure, and friendship. Save the chosen wish.
+7. Wait for the player to confirm returning to the castle, add the chosen Genie wish to inventory, complete mission five, and return to the lobby.
+
+Persist dialogue, avoided-wave count, carpet grid position, Jafar health, Genie rescue state, chosen wish, mission completion, and inventory.
 
 ## Verification
 
