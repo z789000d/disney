@@ -103,7 +103,7 @@ Preserve this order:
 
 1. Both mission entry points navigate to `/frozen-maze`. Anna explains that the wind blew Olaf's carrot nose into the ice maze; Elsa asks the player to follow the glowing footprints; Anna warns about rolling snowballs.
 2. Dialogue advances only through the player's custom next-step buttons. Do not start the maze until all three lines have been read.
-3. Show eight sequential footprints. Only the next footprint is active. Pressing it animates the player marker along the path instead of completing the step instantly. Three animated snowballs cross separate lanes; continuously detect collision both while the marker is travelling and while it is waiting at a reached footprint.
+3. Show eight sequential footprints. Only the next footprint is active. Pressing it animates the player marker along the path instead of completing the step instantly. Three animated snowballs cross separate lanes on a forgiving `5500ms` cycle; continuously detect collision both while the marker is travelling and while it is waiting at a reached footprint.
 4. Any snowball collision, whether on the route or at a reached footprint, resets the footprint progress to zero, moves the marker back to the starting position, restarts the snowball cycle from its beginning, and saves that reset. If no collision occurs, save every successfully reached footprint. Reopening the game resumes at the next saved footprint.
 5. After all eight footprints, reveal a code-drawn carrot. The player must tap it to return Olaf's nose.
 6. Show Olaf's success moment and wait for the player to press `收下魔法雪花`. Animate the code-drawn snowflake above the inventory bar into an inventory slot, then complete mission four and return to the castle.

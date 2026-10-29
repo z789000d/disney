@@ -46,7 +46,7 @@ class _FrozenMazePageState extends State<FrozenMazePage>
     super.initState();
     _snowballs = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 3600),
+      duration: const Duration(milliseconds: 5500),
     )..addListener(_monitorSnowballCollision);
     _snowballs.repeat();
     _traveler =
