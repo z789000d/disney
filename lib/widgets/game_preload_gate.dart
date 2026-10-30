@@ -12,13 +12,19 @@ class GamePreloadGate extends StatefulWidget {
 
 class _GamePreloadGateState extends State<GamePreloadGate> {
   static const _images = <String>[
+    'assets/images/agrabah_night.png',
+    'assets/images/aladdin_carpet.png',
     'assets/images/andy_room.png',
     'assets/images/anna.png',
     'assets/images/bause.png',
     'assets/images/castle_courtyard.png',
     'assets/images/elsa.png',
     'assets/images/frozen_maze.png',
+    'assets/images/genie.png',
+    'assets/images/jafar.png',
+    'assets/images/jafar_defeated.png',
     'assets/images/lotso.png',
+    'assets/images/magic_lamp.png',
     'assets/images/mickey.png',
     'assets/images/mickey_cutout.png',
     'assets/images/minnine_pink.png',
@@ -40,6 +46,7 @@ class _GamePreloadGateState extends State<GamePreloadGate> {
   static const _fontWarmup =
       '生日專屬迪士尼 米奇 米妮 布魯托 公主 任務 道具欄 '
       '狗骨頭 綠襪子 草莓 蝴蝶結 安迪的房間 玩具夥伴 '
+      '阿拉丁 魔毯 賈方 神燈 精靈 勇氣 幸福 冒險 友誼 '
       '你救了我們，我們永遠感謝你！';
 
   bool _ready = false;

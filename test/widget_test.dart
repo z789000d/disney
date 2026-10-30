@@ -28,6 +28,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.textContaining('我是米奇，歡迎來到我的城堡'), findsOneWidget);
+    expect(find.byKey(const ValueKey('dialogue_avatar_米奇')), findsOneWidget);
     expect(find.text('小星'), findsWidgets);
 
     for (var i = 0; i < 4; i++) {
@@ -52,6 +53,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
     expect(find.text('布魯托的家'), findsOneWidget);
+    expect(find.byKey(const ValueKey('dialogue_avatar_布魯托')), findsOneWidget);
 
     expect(find.byKey(const Key('bone_hotspot')), findsNothing);
     final plutoYardRect = tester.getRect(
@@ -122,6 +124,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
     expect(find.text('第二關：安迪的房間'), findsOneWidget);
     expect(find.textContaining('三眼怪不見了'), findsOneWidget);
+    expect(find.byKey(const ValueKey('dialogue_avatar_胡迪')), findsOneWidget);
 
     for (var i = 0; i < 4; i++) {
       await tester.tap(find.text('繼續'));
@@ -212,6 +215,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
     expect(find.text('第三關：米妮的花園'), findsOneWidget);
     expect(find.byKey(const ValueKey('minnie_pink')), findsOneWidget);
+    expect(find.byKey(const ValueKey('dialogue_avatar_米妮')), findsOneWidget);
 
     for (var i = 0; i < 6; i++) {
       await tester.tap(find.byKey(ValueKey('minnie_spot_$i')));
@@ -224,6 +228,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('minnie_ask_pluto')));
     await tester.pump();
     expect(find.text('汪！交給我，我來聞聞看！'), findsOneWidget);
+    expect(find.byKey(const ValueKey('dialogue_avatar_布魯托')), findsOneWidget);
     expect(Get.find<GameController>().minniePlutoAsked.value, isTrue);
     expect(
       find.byKey(const ValueKey('minnie_pluto_start_search')),
@@ -310,10 +315,17 @@ void main() {
     expect(find.byKey(const Key('frozen_anna')), findsOneWidget);
     expect(find.byKey(const Key('frozen_elsa')), findsOneWidget);
     expect(find.byKey(const Key('frozen_olaf_no_nose')), findsOneWidget);
+    expect(find.byKey(const ValueKey('dialogue_avatar_安娜')), findsOneWidget);
 
     for (var step = 0; step < 3; step++) {
       await tester.tap(find.byKey(const ValueKey('frozen_dialogue_next')));
       await tester.pump();
+      if (step == 0) {
+        expect(
+          find.byKey(const ValueKey('dialogue_avatar_艾莎')),
+          findsOneWidget,
+        );
+      }
     }
     expect(find.byKey(const ValueKey('frozen_snowball_0')), findsOneWidget);
     expect(find.byKey(const Key('frozen_maze_traveler')), findsOneWidget);
@@ -349,11 +361,20 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
     expect(find.text('第 5 關：阿拉丁的魔毯救援'), findsOneWidget);
+    expect(find.byKey(const Key('aladdin_background')), findsOneWidget);
+    expect(find.byKey(const ValueKey('dialogue_avatar_阿拉丁')), findsOneWidget);
     for (var step = 0; step < 3; step++) {
       await tester.tap(find.byKey(const Key('aladdin_dialogue_next')));
       await tester.pump();
+      if (step == 0) {
+        expect(
+          find.byKey(const ValueKey('dialogue_avatar_魔毯')),
+          findsOneWidget,
+        );
+      }
     }
     expect(find.byKey(const Key('aladdin_carpet_player')), findsOneWidget);
+    expect(find.byKey(const Key('aladdin_player_image')), findsOneWidget);
     expect(find.byKey(const Key('aladdin_move_up')), findsOneWidget);
     final aladdinController = Get.find<GameController>();
     await tester.tap(find.byKey(const Key('aladdin_move_right')));
@@ -367,6 +388,7 @@ void main() {
     }
     await tester.pump();
     expect(find.byKey(const Key('aladdin_jafar_target')), findsOneWidget);
+    expect(find.byKey(const Key('aladdin_jafar_image')), findsOneWidget);
     for (var hit = 0; hit < 12; hit++) {
       await tester.tap(find.byKey(const Key('aladdin_jafar_target')));
       await tester.pump(const Duration(milliseconds: 20));
@@ -375,6 +397,8 @@ void main() {
     await tester.tap(find.byKey(const Key('aladdin_rescue_genie')));
     await tester.pump();
     expect(find.byKey(const Key('aladdin_freed_genie')), findsOneWidget);
+    expect(find.byKey(const Key('aladdin_genie_image')), findsOneWidget);
+    expect(find.byKey(const ValueKey('dialogue_avatar_精靈')), findsOneWidget);
     for (final wish in ['勇氣', '幸福', '冒險', '友誼']) {
       expect(find.byKey(ValueKey('aladdin_wish_$wish')), findsOneWidget);
     }

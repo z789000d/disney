@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../controllers/game_controller.dart';
+import '../widgets/animated_characters.dart';
 import '../widgets/game_item_art.dart';
 import '../widgets/game_widgets.dart';
 import '../widgets/mission_inventory.dart';
@@ -440,36 +441,11 @@ class _AndyRoomPageState extends State<AndyRoomPage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              _speakerAvatar(line.speaker),
-              const SizedBox(width: 9),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      line.speaker,
-                      style: const TextStyle(
-                        color: Color(0xFF5D328A),
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    Text(
-                      line.text,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Color(0xFF322B3D),
-                        fontSize: 13,
-                        height: 1.3,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          CharacterDialogueLine(
+            speaker: line.speaker,
+            text: line.text,
+            avatarSize: 48,
+            speakerColor: const Color(0xFF5D328A),
           ),
           const SizedBox(height: 8),
           SizedBox(
@@ -525,28 +501,6 @@ class _AndyRoomPageState extends State<AndyRoomPage> {
           ],
         ),
       );
-
-  Widget _speakerAvatar(String speaker) {
-    final asset = switch (speaker) {
-      '胡迪' => 'assets/images/woody.png',
-      '巴斯光年' => 'assets/images/bause.png',
-      '彈簧狗' => 'assets/images/slinky_dog.png',
-      '熊抱哥' => 'assets/images/lotso.png',
-      '三眼怪' => 'assets/images/three_eye.png',
-      _ => 'assets/images/zurg.png',
-    };
-    return Container(
-      width: 48,
-      height: 48,
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: const Color(0xFFEADFFF),
-        shape: BoxShape.circle,
-        border: Border.all(color: const Color(0xFFFFD873), width: 2),
-      ),
-      child: ClipOval(child: Image.asset(asset, fit: BoxFit.contain)),
-    );
-  }
 }
 
 class _ZurgBattleTarget extends StatefulWidget {

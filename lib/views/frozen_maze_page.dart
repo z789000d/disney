@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../controllers/game_controller.dart';
+import '../widgets/animated_characters.dart';
 import '../widgets/game_item_art.dart';
 import '../widgets/game_widgets.dart';
 import '../widgets/mission_inventory.dart';
@@ -415,20 +416,12 @@ class _FrozenMazePageState extends State<FrozenMazePage>
         mainAxisSize: MainAxisSize.min,
         children: [
           if (inDialogue) ...[
-            Text(
-              _story[dialogueStep].speaker,
-              style: const TextStyle(
-                color: Color(0xFF174F82),
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: 3),
-            Text(
-              _story[dialogueStep].text,
+            CharacterDialogueLine(
+              speaker: _story[dialogueStep].speaker,
+              text: _story[dialogueStep].text,
+              avatarSize: 50,
+              speakerColor: const Color(0xFF174F82),
               textAlign: TextAlign.center,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w700, height: 1.25),
             ),
             const SizedBox(height: 8),
             MagicButton(
@@ -470,13 +463,13 @@ class _FrozenMazePageState extends State<FrozenMazePage>
               ),
             ),
           ] else ...[
-            const Text(
-              '雪寶：我的鼻子回來了！這片魔法雪花送給你！',
+            const CharacterDialogueLine(
+              speaker: '雪寶',
+              text: '我的鼻子回來了！這片魔法雪花送給你！',
+              avatarSize: 50,
+              speakerColor: Color(0xFF174F82),
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Color(0xFF174F82),
-                fontWeight: FontWeight.w900,
-              ),
+              assetOverride: 'assets/images/olaf_has_nose.png',
             ),
             const SizedBox(height: 8),
             MagicButton(

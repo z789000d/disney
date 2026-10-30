@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../controllers/game_controller.dart';
+import '../widgets/animated_characters.dart';
 import '../widgets/game_widgets.dart';
 import '../widgets/mission_inventory.dart';
 
@@ -220,17 +221,13 @@ class _PrototypeMissionPageState extends State<PrototypeMissionPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (inDialogue) ...[
-            Text(
-              line!.speaker,
-              style: TextStyle(color: config.dark, fontWeight: FontWeight.w900),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              line.text,
+            CharacterDialogueLine(
+              speaker: line!.speaker,
+              text: line.text,
+              avatarSize: 48,
+              speakerColor: config.dark,
               textAlign: TextAlign.center,
               maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w700, height: 1.3),
             ),
             const SizedBox(height: 9),
             MagicButton(

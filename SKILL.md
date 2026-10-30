@@ -26,6 +26,7 @@ Keep changes consistent with the existing game and minimize network, image-gener
 - Andy's room background: `assets/images/andy_room.png`
 - Toy rescue cast: `assets/images/woody.png`, `assets/images/bause.png`, `assets/images/slinky_dog.png`, `assets/images/lotso.png`, `assets/images/three_eye.png`, and `assets/images/zurg.png`
 - Frozen maze: `assets/images/frozen_maze.png`, `assets/images/anna.png`, `assets/images/elsa.png`, `assets/images/olaf_no_nose.png`, and `assets/images/olaf_has_nose.png`
+- Agrabah: `assets/images/agrabah_night.png`, `assets/images/aladdin_carpet.png`, `assets/images/jafar.png`, `assets/images/jafar_defeated.png`, `assets/images/magic_lamp.png`, and `assets/images/genie.png`
 
 Preserve transparency and use these exact assets unless the user names replacements.
 
@@ -37,6 +38,7 @@ Preserve transparency and use these exact assets unless the user names replaceme
 - The castle home settings button uses its own `Positioned(top, right)` layer inside `SafeArea`; it must stay pinned to the physical top-right instead of participating in the status `Row`. Clearing memory always requires an explicit confirmation, removes only this game's saved player/progress/inventory data, resets every runtime mission state, and returns to the name-entry page.
 - Automatically save the player name, dialogue state, mission progress, stars, recruited characters, grass-search state, and inventory. A later launch resumes directly in the game.
 - Before revealing the first route, preload and decode every local character/background image and warm up the commonly used Traditional Chinese glyphs. Show only the dedicated loading surface until preloading completes, so partially loaded game scenes never flash on screen.
+- Every character-spoken dialogue panel in every mission must show the current speaker beside the text. Use the shared `CharacterDialogueLine`/`CharacterDialogueAvatar` widgets so the portrait changes with the story line. Use a state-specific local image override when a character's appearance changes; if no art exists yet, show a labeled initial placeholder instead of borrowing another character's portrait.
 - Use the custom royal-purple, gold, fairy-tale controls in `lib/widgets/game_widgets.dart`. Do not reintroduce default Material 3 buttons.
 - Keep cross-platform emoji fallbacks (`Apple Color Emoji`, `Noto Color Emoji`, `Segoe UI Emoji`, and `Twemoji Mozilla`) in the app theme so decorative symbols do not render as missing-glyph boxes. Prefer Material icons or local image assets for critical controls and gameplay feedback.
 - Never place Emoji, dingbat, or decorative Unicode symbols directly in visible `Text` widgets. Web fallback fonts can briefly show tofu boxes even after preloading; use bundled Material `Icon`s, `GameItemArt`, local images, or custom painting instead.

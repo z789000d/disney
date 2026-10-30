@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../controllers/game_controller.dart';
+import '../widgets/animated_characters.dart';
 import '../widgets/game_widgets.dart';
 import '../widgets/mission_inventory.dart';
 
@@ -104,7 +105,22 @@ class _AladdinFlightPageState extends State<AladdinFlightPage>
         body: Stack(
           fit: StackFit.expand,
           children: [
-            const CustomPaint(painter: _AgrabahBackgroundPainter()),
+            Image.asset(
+              'assets/images/agrabah_night.png',
+              key: const Key('aladdin_background'),
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  const CustomPaint(painter: _AgrabahBackgroundPainter()),
+            ),
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0x220A053D), Color(0x660A053D)],
+                ),
+              ),
+            ),
             SafeArea(
               child: Column(
                 children: [
@@ -280,14 +296,9 @@ class _AladdinFlightPageState extends State<AladdinFlightPage>
             scale: _jafarHit ? .82 : 1,
             duration: const Duration(milliseconds: 100),
             child: Container(
-              width: 138,
-              height: 166,
+              width: 154,
+              height: 178,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF32102E), Color(0xFF9D183D)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
                 borderRadius: BorderRadius.circular(35),
                 border: Border.all(
                   color: _jafarHit ? Colors.white : const Color(0xFFFFC44D),
@@ -297,21 +308,25 @@ class _AladdinFlightPageState extends State<AladdinFlightPage>
                   BoxShadow(color: Color(0xAAE53445), blurRadius: 24),
                 ],
               ),
-              child: const Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+              child: Stack(
+                alignment: Alignment.bottomCenter,
                 children: [
-                  Icon(Icons.person_4_rounded, color: Colors.white, size: 78),
-                  Text(
-                    '賈方',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 19,
-                      fontWeight: FontWeight.w900,
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(6, 4, 6, 24),
+                    child: Image.asset(
+                      'assets/images/jafar.png',
+                      key: const Key('aladdin_jafar_image'),
+                      fit: BoxFit.contain,
                     ),
                   ),
-                  Text(
+                  const Text(
                     '快速點擊攻擊！',
-                    style: TextStyle(color: Color(0xFFFFD88A), fontSize: 12),
+                    style: TextStyle(
+                      color: Color(0xFFFFD88A),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                      shadows: [Shadow(color: Colors.black, blurRadius: 5)],
+                    ),
                   ),
                 ],
               ),
@@ -343,20 +358,13 @@ class _AladdinFlightPageState extends State<AladdinFlightPage>
         mainAxisSize: MainAxisSize.min,
         children: [
           if (inDialogue) ...[
-            Text(
-              _story[dialogueStep].speaker,
-              style: const TextStyle(
-                color: Color(0xFF5D2D78),
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: 3),
-            Text(
-              _story[dialogueStep].text,
+            CharacterDialogueLine(
+              speaker: _story[dialogueStep].speaker,
+              text: _story[dialogueStep].text,
+              avatarSize: 48,
+              speakerColor: const Color(0xFF5D2D78),
               textAlign: TextAlign.center,
               maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w700, height: 1.25),
             ),
             const SizedBox(height: 8),
             MagicButton(
@@ -426,24 +434,22 @@ class _AladdinFlightPageState extends State<AladdinFlightPage>
               onPressed: controller.rescueAladdinGenie,
             ),
           ] else if (wish.isEmpty) ...[
-            const Text(
-              '精靈：感謝你把我救回來！我送你一個願望，選一個吧！',
+            const CharacterDialogueLine(
+              speaker: '精靈',
+              text: '感謝你把我救回來！我送你一個願望，選一個吧！',
+              avatarSize: 48,
+              speakerColor: Color(0xFF1A5F98),
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Color(0xFF1A5F98),
-                fontWeight: FontWeight.w900,
-              ),
             ),
             const SizedBox(height: 7),
             _wishChoices(),
           ] else ...[
-            Text(
-              '你選擇了「$wish願望」！精靈會讓這份祝福陪著你。',
+            CharacterDialogueLine(
+              speaker: '精靈',
+              text: '你選擇了「$wish願望」！我會讓這份祝福陪著你。',
+              avatarSize: 48,
+              speakerColor: const Color(0xFF1A5F98),
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Color(0xFF1A5F98),
-                fontWeight: FontWeight.w900,
-              ),
             ),
             const SizedBox(height: 8),
             MagicButton(
@@ -633,37 +639,16 @@ class _AladdinCarpet extends StatelessWidget {
   const _AladdinCarpet();
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-    width: 78,
-    height: 72,
-    child: Stack(
-      alignment: Alignment.center,
-      children: [
-        Positioned(
-          bottom: 7,
-          child: Transform.rotate(
-            angle: -.08,
-            child: Container(
-              width: 76,
-              height: 31,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFE14A99), Color(0xFF66399D)],
-                ),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFFFD873), width: 2),
-                boxShadow: const [
-                  BoxShadow(color: Color(0x884A2B7B), blurRadius: 12),
-                ],
-              ),
-            ),
-          ),
-        ),
-        const Positioned(
-          top: 0,
-          child: Icon(Icons.person_rounded, color: Color(0xFF51266F), size: 46),
-        ),
-      ],
+  Widget build(BuildContext context) => Container(
+    width: 92,
+    height: 86,
+    decoration: const BoxDecoration(
+      boxShadow: [BoxShadow(color: Color(0x884A2B7B), blurRadius: 13)],
+    ),
+    child: Image.asset(
+      'assets/images/aladdin_carpet.png',
+      key: const Key('aladdin_player_image'),
+      fit: BoxFit.contain,
     ),
   );
 }
@@ -713,15 +698,31 @@ class _DefeatedJafar extends StatelessWidget {
         opacity: opacity,
         child: Transform.scale(scale: .65 + opacity * .35, child: child),
       ),
-      child: const Column(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.person_4_rounded, color: Color(0xFF8E173B), size: 105),
-          Text(
+          SizedBox(
+            width: 135,
+            height: 135,
+            child: Image.asset(
+              'assets/images/jafar_defeated.png',
+              key: const Key('aladdin_defeated_image'),
+              fit: BoxFit.contain,
+            ),
+          ),
+          const Text(
             '賈方的魔法消失了！',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900),
           ),
-          Icon(Icons.light_mode_rounded, color: Color(0xFFFFD873), size: 58),
+          SizedBox(
+            width: 76,
+            height: 58,
+            child: Image.asset(
+              'assets/images/magic_lamp.png',
+              key: const Key('aladdin_lamp_image'),
+              fit: BoxFit.contain,
+            ),
+          ),
         ],
       ),
     ),
@@ -755,11 +756,19 @@ class _FreedGenie extends StatelessWidget {
             BoxShadow(color: Color(0xAA56CFFF), blurRadius: 28),
           ],
         ),
-        child: const Column(
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.face_rounded, color: Colors.white, size: 82),
-            Text(
+            SizedBox(
+              width: 122,
+              height: 110,
+              child: Image.asset(
+                'assets/images/genie.png',
+                key: const Key('aladdin_genie_image'),
+                fit: BoxFit.contain,
+              ),
+            ),
+            const Text(
               '神燈精靈',
               style: TextStyle(
                 color: Colors.white,

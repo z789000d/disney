@@ -292,19 +292,18 @@ class CharacterDialogueAvatar extends StatelessWidget {
     super.key,
     required this.speaker,
     this.size = 76,
+    this.assetOverride,
   });
 
   final String speaker;
   final double size;
+  final String? assetOverride;
 
   @override
   Widget build(BuildContext context) {
-    final asset = speaker == '米奇'
-        ? 'assets/images/mickey_cutout.png'
-        : speaker == '布魯托'
-        ? 'assets/images/pluto_cutout.png'
-        : 'assets/images/princess_cutout.png';
+    final asset = assetOverride ?? _assetForSpeaker(speaker);
     return Container(
+      key: ValueKey('dialogue_avatar_$speaker'),
       width: size,
       height: size,
       decoration: BoxDecoration(
@@ -314,14 +313,111 @@ class CharacterDialogueAvatar extends StatelessWidget {
         boxShadow: const [BoxShadow(color: Color(0x330E0A42), blurRadius: 10)],
       ),
       child: ClipOval(
-        child: Image.asset(
-          asset,
-          fit: BoxFit.cover,
-          alignment: Alignment.topCenter,
-        ),
+        child: asset == null
+            ? ColoredBox(
+                color: const Color(0xFFE9DFFF),
+                child: Center(
+                  child: Text(
+                    speaker.isEmpty ? '?' : speaker.substring(0, 1),
+                    style: const TextStyle(
+                      color: Color(0xFF5D328A),
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              )
+            : Image.asset(
+                asset,
+                fit: BoxFit.cover,
+                alignment: Alignment.topCenter,
+              ),
       ),
     );
   }
+
+  String? _assetForSpeaker(String speaker) => switch (speaker) {
+    '米奇' => 'assets/images/mickey_cutout.png',
+    '布魯托' => 'assets/images/pluto_cutout.png',
+    '米妮' => 'assets/images/minnine_pink.png',
+    '胡迪' => 'assets/images/woody.png',
+    '巴斯光年' => 'assets/images/bause.png',
+    '彈簧狗' => 'assets/images/slinky_dog.png',
+    '熊抱哥' => 'assets/images/lotso.png',
+    '三眼怪' => 'assets/images/three_eye.png',
+    '札克' => 'assets/images/zurg.png',
+    '安娜' => 'assets/images/anna.png',
+    '艾莎' => 'assets/images/elsa.png',
+    '雪寶' => 'assets/images/olaf_no_nose.png',
+    '阿拉丁' || '魔毯' || '阿拉丁與魔毯' => 'assets/images/aladdin_carpet.png',
+    '賈方' => 'assets/images/jafar.png',
+    '精靈' || '神燈精靈' => 'assets/images/genie.png',
+    _ => null,
+  };
+}
+
+class CharacterDialogueLine extends StatelessWidget {
+  const CharacterDialogueLine({
+    super.key,
+    required this.speaker,
+    required this.text,
+    this.avatarSize = 52,
+    this.speakerColor = const Color(0xFF6D4DCE),
+    this.textColor = const Color(0xFF332B40),
+    this.maxLines = 3,
+    this.textAlign = TextAlign.left,
+    this.assetOverride,
+  });
+
+  final String speaker;
+  final String text;
+  final double avatarSize;
+  final Color speakerColor;
+  final Color textColor;
+  final int maxLines;
+  final TextAlign textAlign;
+  final String? assetOverride;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      CharacterDialogueAvatar(
+        speaker: speaker,
+        size: avatarSize,
+        assetOverride: assetOverride,
+      ),
+      const SizedBox(width: 10),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: textAlign == TextAlign.center
+              ? CrossAxisAlignment.center
+              : CrossAxisAlignment.start,
+          children: [
+            Text(
+              speaker,
+              style: TextStyle(
+                color: speakerColor,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              text,
+              textAlign: textAlign,
+              maxLines: maxLines,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: textColor,
+                fontWeight: FontWeight.w700,
+                height: 1.25,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
 }
 
 class _CharacterGlow extends StatelessWidget {

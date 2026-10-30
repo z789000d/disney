@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../controllers/game_controller.dart';
+import '../widgets/animated_characters.dart';
 import '../widgets/game_item_art.dart';
 import '../widgets/game_widgets.dart';
 import '../widgets/mission_inventory.dart';
@@ -172,6 +173,11 @@ class MinnieGardenPage extends GetView<GameController> {
   }
 
   Widget _instructionPanel() {
+    final plutoSpeaking =
+        controller.minniePlutoSearching.value ||
+        (controller.allMinnieSpotsSearched &&
+            controller.minniePlutoAsked.value);
+    final speaker = plutoSpeaking ? '布魯托' : '米妮';
     final text = controller.minnieRewardGiving.value
         ? '米妮正在把粉色蝴蝶結送給你…'
         : controller.minnieRedBowFound.value
@@ -194,25 +200,16 @@ class MinnieGardenPage extends GetView<GameController> {
         border: Border.all(color: const Color(0xFFFFB7D7), width: 2),
         boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10)],
       ),
-      child: Row(
-        children: [
-          const Icon(Icons.search_rounded, color: Color(0xFFC03978)),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              text,
-              textAlign: TextAlign.center,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Color(0xFF5D2947),
-                fontSize: 12,
-                height: 1.3,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-        ],
+      child: CharacterDialogueLine(
+        speaker: speaker,
+        text: text,
+        avatarSize: 44,
+        speakerColor: const Color(0xFFC03978),
+        textColor: const Color(0xFF5D2947),
+        textAlign: TextAlign.center,
+        assetOverride: speaker == '米妮' && controller.minnieBowReturned.value
+            ? 'assets/images/minnine_red.png'
+            : null,
       ),
     );
   }

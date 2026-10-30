@@ -174,39 +174,21 @@ class PlutoHomePage extends GetView<GameController> {
           borderRadius: BorderRadius.circular(18),
           boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 14)],
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              controller.boneGiving.value
-                  ? Icons.home_rounded
-                  : controller.plutoBoneCollecting.value
-                  ? Icons.backpack_rounded
-                  : controller.plutoBoneFound.value
-                  ? Icons.backpack_rounded
-                  : Icons.touch_app_rounded,
-              color: const Color(0xFF7A4B16),
-            ),
-            const SizedBox(width: 9),
-            Flexible(
-              child: Text(
-                controller.boneGiving.value
-                    ? '先把骨頭交給布魯托，然後它會跑回狗屋…'
-                    : controller.plutoBoneCollecting.value
-                    ? '找到骨頭了！正在放進道具欄…'
-                    : controller.plutoBoneFound.value
-                    ? '骨頭已放進道具欄！點擊狗骨頭交給布魯托。'
-                    : controller.allPlutoGrassSearched
-                    ? '六處都找過了！新的發光草叢出現了，快點它看看。'
-                    : '先搜索院子裡的 6 叢草（${controller.searchedPlutoGrass.length}/6）。',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Color(0xFF4A331D),
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-          ],
+        child: CharacterDialogueLine(
+          speaker: '布魯托',
+          text: controller.boneGiving.value
+              ? '先把骨頭交給我，然後我會跑回狗屋…'
+              : controller.plutoBoneCollecting.value
+              ? '找到骨頭了！正在放進道具欄…'
+              : controller.plutoBoneFound.value
+              ? '骨頭已放進道具欄！點擊狗骨頭交給我。'
+              : controller.allPlutoGrassSearched
+              ? '六處都找過了！新的發光草叢出現了，快點它看看。'
+              : '先搜索院子裡的 6 叢草（${controller.searchedPlutoGrass.length}/6）。',
+          avatarSize: 44,
+          speakerColor: const Color(0xFF7A4B16),
+          textColor: const Color(0xFF4A331D),
+          textAlign: TextAlign.center,
         ),
       ),
       InventoryBar(
